@@ -24,3 +24,10 @@ yarn-error.log*
 
 # Tailwind processed CSS 
 index.css
+
+
+/public/charting_library
+/public/datafeeds
+
+
+/src/charting_library
