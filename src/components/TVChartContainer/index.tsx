@@ -63,7 +63,7 @@ export class TVChartContainer extends React.PureComponent<Partial<ChartContainer
       container: this.ref.current,
       library_path: this.props.libraryPath as string,
       locale: getLanguageFromURL() || 'en',
-      disabled_features: ['use_localstorage_for_settings'],
+      disabled_features: ['use_localstorage_for_settings', 'left_toolbar'],
       enabled_features: ['study_templates'],
       charts_storage_url: this.props.chartsStorageUrl,
       charts_storage_api_version: this.props.chartsStorageApiVersion,
@@ -79,7 +79,9 @@ export class TVChartContainer extends React.PureComponent<Partial<ChartContainer
     this.tvWidget = tvWidget;
 
     // on ready callbacks
-    tvWidget.onChartReady(() => {});
+    tvWidget.onChartReady(() => {
+      // tvWidget.activeChart().executeActionById('drawingToolbarAction');
+    });
   }
 
   public componentWillUnmount(): void {
