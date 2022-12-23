@@ -547,7 +547,7 @@ export function getTransakConfig(accountId: string, env: string = process.env.NE
   }
 }
 
-export function getOrderlyConfig(env: string = process.env.NEAR_ENV) {
+export function getOrderlyConfig(env: string = process.env.NEAR_ENV || process.env.REACT_APP_NEAR_ENV) {
   switch (env) {
     case 'production':
     case 'mainnet':

@@ -1,6 +1,7 @@
 // @ts-noCheck
 
-import { parseFullSymbol } from './helpers.js';
+import { parseFullSymbol } from './helpers';
+import io from 'socket.io-client';
 
 const socket = io('wss://streamer.cryptocompare.com');
 const channelToSubscription = new Map();

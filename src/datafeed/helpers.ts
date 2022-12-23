@@ -1,17 +1,18 @@
 // Make requests to CryptoCompare API
 
-// @ts-noCheck
-export async function makeApiRequest(path) {
+import { getOrderlyConfig } from '../config';
+
+export async function makePublicApiRequest(path: string) {
   try {
-    const response = await fetch(`https://min-api.cryptocompare.com/${path}`);
+    const response = await fetch(`${getOrderlyConfig().OFF_CHAIN_END_POINT}/${path}`);
     return response.json();
-  } catch (error) {
-    throw new Error(`CryptoCompare request error: ${error.status}`);
+  } catch {
+    throw new Error(`Symbol request Error`);
   }
 }
 
 // Generate a symbol ID from a pair of the coins
-export function generateSymbol(exchange, fromSymbol, toSymbol) {
+export function generateSymbol(exchange: string, fromSymbol: string, toSymbol: string) {
   const short = `${fromSymbol}/${toSymbol}`;
   return {
     short,
@@ -19,15 +20,17 @@ export function generateSymbol(exchange, fromSymbol, toSymbol) {
   };
 }
 
-export function parseFullSymbol(fullSymbol) {
-  const match = fullSymbol.match(/^(\w+):(\w+)\/(\w+)$/);
+export function parseFullSymbol(fullSymbol: string) {
+  console.log('fullSymbol: ', fullSymbol);
+
+  const match = fullSymbol.match(/^(\w+):(\w+)_(\w+)_(\w+)$/);
   if (!match) {
     return null;
   }
 
   return {
     exchange: match[1],
-    fromSymbol: match[2],
-    toSymbol: match[3],
+    fromSymbol: match[3],
+    toSymbol: match[4],
   };
 }

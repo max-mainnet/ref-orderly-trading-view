@@ -2,10 +2,12 @@ import * as React from 'react';
 import './index.css';
 import { widget, ChartingLibraryWidgetOptions, LanguageCode, IChartingLibraryWidget, ResolutionString } from '../../charting_library';
 
+import datafeed from '../../datafeed';
+
 export interface ChartContainerProps {
   symbol: ChartingLibraryWidgetOptions['symbol'];
   interval: ChartingLibraryWidgetOptions['interval'];
-
+  theme: ChartingLibraryWidgetOptions['theme'];
   // BEWARE: no trailing slash is expected in feed URL
   datafeedUrl: string;
   libraryPath: ChartingLibraryWidgetOptions['library_path'];
@@ -29,7 +31,8 @@ function getLanguageFromURL(): LanguageCode | null {
 
 export class TVChartContainer extends React.PureComponent<Partial<ChartContainerProps>, ChartContainerState> {
   public static defaultProps: Omit<ChartContainerProps, 'container'> = {
-    symbol: 'AAPL',
+    symbol: 'SPOT_NEAR_USDC',
+    theme: 'Dark',
     interval: 'D' as ResolutionString,
     datafeedUrl: 'https://demo_feed.tradingview.com',
     libraryPath: '/charting_library/',
@@ -54,11 +57,11 @@ export class TVChartContainer extends React.PureComponent<Partial<ChartContainer
       symbol: this.props.symbol as string,
       // BEWARE: no trailing slash is expected in feed URL
       // tslint:disable-next-line:no-any
-      datafeed: new (window as any).Datafeeds.UDFCompatibleDatafeed(this.props.datafeedUrl),
+      theme: this.props.theme,
+      datafeed: datafeed,
       interval: this.props.interval as ChartingLibraryWidgetOptions['interval'],
       container: this.ref.current,
       library_path: this.props.libraryPath as string,
-
       locale: getLanguageFromURL() || 'en',
       disabled_features: ['use_localstorage_for_settings'],
       enabled_features: ['study_templates'],
@@ -72,25 +75,11 @@ export class TVChartContainer extends React.PureComponent<Partial<ChartContainer
     };
 
     const tvWidget = new widget(widgetOptions);
+
     this.tvWidget = tvWidget;
 
-    tvWidget.onChartReady(() => {
-      tvWidget.headerReady().then(() => {
-        const button = tvWidget.createButton();
-        button.setAttribute('title', 'Click to show a notification popup');
-        button.classList.add('apply-common-tooltip');
-        button.addEventListener('click', () =>
-          tvWidget.showNoticeDialog({
-            title: 'Notification',
-            body: 'TradingView Charting Library API works correctly',
-            callback: () => {
-              console.log('Noticed!');
-            },
-          })
-        );
-        button.innerHTML = 'Check API';
-      });
-    });
+    // on ready callbacks
+    tvWidget.onChartReady(() => {});
   }
 
   public componentWillUnmount(): void {
