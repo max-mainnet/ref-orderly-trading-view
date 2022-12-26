@@ -92,7 +92,7 @@ export function getCustomConfig() {
   }
   return customRpcMap;
 }
-export default function getConfig(env: string = process.env.NEAR_ENV) {
+export default function getConfig(env: string = process.env.NEAR_ENV || process.env.REACT_APP_NEAR_ENV) {
   const RPC_LIST_system = getExtendConfig().RPC_LIST;
   const RPC_LIST_custom = getCustomConfig();
   const RPC_LIST = Object.assign(RPC_LIST_system, RPC_LIST_custom);
@@ -310,7 +310,7 @@ export default function getConfig(env: string = process.env.NEAR_ENV) {
   }
 }
 
-export function getExtraStablePoolConfig(env: string = process.env.NEAR_ENV) {
+export function getExtraStablePoolConfig(env: string = process.env.NEAR_ENV || process.env.REACT_APP_NEAR_ENV) {
   switch (env) {
     case 'production':
     case 'mainnet':
@@ -492,7 +492,7 @@ export function getExtraStablePoolConfig(env: string = process.env.NEAR_ENV) {
       };
   }
 }
-export function getTransakConfig(accountId: string, env: string = process.env.NEAR_ENV) {
+export function getTransakConfig(accountId: string, env: string = process.env.NEAR_ENV || process.env.REACT_APP_NEAR_ENV) {
   switch (env) {
     case 'production':
     case 'mainnet':

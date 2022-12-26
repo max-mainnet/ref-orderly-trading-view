@@ -15,13 +15,15 @@ import '@near-wallet-selector/modal-ui/styles.css';
 const CONTRACT_ID = getConfig().ORDERLY_ASSET_MANAGER;
 declare global {
   interface Window {
-    selector: WalletSelector;
+    selector: WalletSelector & {
+      accountId?: string | null;
+    };
     modal: WalletSelectorModal;
   }
 }
 
 interface WalletSelectorContextValue {
-  selector: WalletSelector;
+  selector: WalletSelector & { accountId?: string };
   modal: WalletSelectorModal;
   accounts: Array<AccountState>;
   accountId: string | null;
@@ -83,6 +85,8 @@ export const WalletSelectorContextProvider: React.FC<any> = ({ children }) => {
   }
 
   const accountId = accounts.find((account) => account.active)?.accountId || null;
+
+  window.selector.accountId = accountId;
 
   return (
     <WalletSelectorContext.Provider

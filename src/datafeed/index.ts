@@ -46,7 +46,7 @@ async function getAllSymbols() {
 
   const symbols = pairs.map((p) => {
     return {
-      symbol: p.symbol,
+      symbol: p.symbol.split('_').slice(1, undefined).join('/'),
       full_name: p.symbol,
       description: p.symbol,
       exchange: 'Orderly',

@@ -1,111 +1,207 @@
 // @ts-noCheck
 
-import { parseFullSymbol } from './helpers';
+import { config } from '../near';
+
+import { getOrderlyConfig } from '../config';
+import { ResolutionToSeconds, parseFullSymbol, parseResolution } from './helpers';
 import io from 'socket.io-client';
 
-const socket = io('wss://streamer.cryptocompare.com');
+// import { WebSocket } from 'ws';
+
 const channelToSubscription = new Map();
 
-socket.on('connect', () => {
-  console.log('[socket] Connected');
-});
+const ws = new WebSocket(
+  `${getOrderlyConfig().ORDERLY_WS_ENDPOINT}/${
+    !!window.selector && window.selector.isSignedIn() ? window.selector.accountId : 'OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY'
+  }`
+);
 
-socket.on('disconnect', (reason) => {
-  console.log('[socket] Disconnected:', reason);
-});
+function sendPing() {
+  ws.send(
+    JSON.stringify({
+      event: 'ping',
+      ts: Date.now(),
+    })
+  );
+}
 
-socket.on('error', (error) => {
-  console.log('[socket] Error:', error);
-});
+function sendPong() {
+  ws.send(
+    JSON.stringify({
+      event: 'pong',
+      ts: Date.now(),
+    })
+  );
+}
 
-socket.on('m', (data) => {
-  console.log('[socket] Message:', data);
-  const [eventTypeStr, exchange, fromSymbol, toSymbol, , , tradeTimeStr, , tradePriceStr] = data.split('~');
+ws.onopen = () => {
+  sendPing();
+};
 
-  if (parseInt(eventTypeStr) !== 0) {
-    // skip all non-TRADE events
+ws.onmessage = (event) => {
+  const { event: data_event } = JSON.parse(event.data);
+
+  console.log('msg event', event);
+
+  if (data_event) {
+    if (data_event === 'ping') {
+      sendPong();
+      sendPing();
+    }
+
+    // else if (data_event === 'pong') {
+    //   sendPing();
+    // }
+  }
+
+  // alert('message');
+};
+
+ws.onclose = (event) => {
+  console.log('close event: ', event);
+  alert('close');
+};
+
+ws.onerror = (event) => {
+  console.log('error event: ', event);
+
+  // alert('error ');
+};
+
+ws.onmessage = (event) => {
+  console.log('[socket] Message:', event.data);
+
+  const { data, topic, event: dataEvent } = JSON.parse(event.data);
+
+  console.log('dataEvent: ', dataEvent);
+
+  if (dataEvent === 'ping') {
+    sendPong();
     return;
   }
-  const tradePrice = parseFloat(tradePriceStr);
-  const tradeTime = parseInt(tradeTimeStr);
-  const channelString = `0~${exchange}~${fromSymbol}~${toSymbol}`;
-  const subscriptionItem = channelToSubscription.get(channelString);
+
+  console.log('data: ', data, topic, 'topic');
+
+  if (!topic || topic.indexOf('kline') === -1) {
+    console.log('return goto');
+    return;
+  }
+
+  const { endTime, high, low, open, startTime, close } = data;
+
+  const subscriptionItem = channelToSubscription.get(topic);
   if (subscriptionItem === undefined) {
     return;
   }
-  const lastDailyBar = subscriptionItem.lastDailyBar;
-  const nextDailyBarTime = getNextDailyBarTime(lastDailyBar.time);
+
+  const lastBar = subscriptionItem.lastBar;
+  console.log('lastBar: ', lastBar);
+
+  const nextDailyBarTime = getNextBarTime(lastBar.time, subscriptionItem.resolution);
+  console.log('nextDailyBarTime: ', nextDailyBarTime);
 
   let bar;
-  if (tradeTime >= nextDailyBarTime) {
+  if (startTime >= nextDailyBarTime) {
     bar = {
       time: nextDailyBarTime,
-      open: tradePrice,
-      high: tradePrice,
-      low: tradePrice,
-      close: tradePrice,
+      open: open,
+      high: high,
+      low: low,
+      close: close,
     };
     console.log('[socket] Generate new bar', bar);
   } else {
     bar = {
-      ...lastDailyBar,
-      high: Math.max(lastDailyBar.high, tradePrice),
-      low: Math.min(lastDailyBar.low, tradePrice),
-      close: tradePrice,
+      ...lastBar,
+      high: Math.max(lastBar.high, high),
+      low: Math.min(lastBar.low, low),
+      close: close,
     };
-    console.log('[socket] Update the latest bar by price', tradePrice);
+    console.log('[socket] Update the latest bar by price', low);
   }
-  subscriptionItem.lastDailyBar = bar;
+  subscriptionItem.lastBar = bar;
+  console.log('subscriptionItem: ', subscriptionItem);
+
+  console.log('bar: ', bar);
 
   // send data to every subscriber of that symbol
   subscriptionItem.handlers.forEach((handler) => handler.callback(bar));
-});
+};
 
-function getNextDailyBarTime(barTime) {
-  const date = new Date(barTime * 1000);
-  date.setDate(date.getDate() + 1);
-  return date.getTime() / 1000;
+function getNextBarTime(barTime: number, resolution: string) {
+  return barTime + ResolutionToSeconds(resolution) * 1000;
 }
 
-export function subscribeOnStream(symbolInfo, resolution, onRealtimeCallback, subscriberUID, onResetCacheNeededCallback, lastDailyBar) {
+export function subscribeOnStream(symbolInfo, resolution, onRealtimeCallback, subscriberUID, onResetCacheNeededCallback, lastBar) {
+  console.log('lastBar: ', lastBar);
+
   const parsedSymbol = parseFullSymbol(symbolInfo.full_name);
   const channelString = `0~${parsedSymbol.exchange}~${parsedSymbol.fromSymbol}~${parsedSymbol.toSymbol}`;
+
+  const topic = `SPOT_${parsedSymbol.fromSymbol}_${parsedSymbol.toSymbol}@kline_${parseResolution(resolution)}`;
+
   const handler = {
     id: subscriberUID,
     callback: onRealtimeCallback,
+    topic,
   };
-  let subscriptionItem = channelToSubscription.get(channelString);
+
+  const msg = {
+    event: 'subscribe',
+    topic,
+    id: topic,
+    ts: Date.now(),
+  };
+  let subscriptionItem = channelToSubscription.get(topic);
+
+  console.log('subscriptionItem: ', subscriptionItem);
   if (subscriptionItem) {
     // already subscribed to the channel, use the existing subscription
+
     subscriptionItem.handlers.push(handler);
     return;
   }
+
   subscriptionItem = {
     subscriberUID,
     resolution,
-    lastDailyBar,
+    lastBar,
     handlers: [handler],
   };
-  channelToSubscription.set(channelString, subscriptionItem);
+
+  console.log('subscriptionItem: ', subscriptionItem);
+
   console.log('[subscribeBars]: Subscribe to streaming. Channel:', channelString);
-  socket.emit('SubAdd', { subs: [channelString] });
+
+  channelToSubscription.set(topic, subscriptionItem);
+
+  ws.send(JSON.stringify(msg));
 }
 
 export function unsubscribeFromStream(subscriberUID) {
   // find a subscription with id === subscriberUID
-  for (const channelString of channelToSubscription.keys()) {
-    const subscriptionItem = channelToSubscription.get(channelString);
+  for (const topic of channelToSubscription.keys()) {
+    const subscriptionItem = channelToSubscription.get(topic);
     const handlerIndex = subscriptionItem.handlers.findIndex((handler) => handler.id === subscriberUID);
 
     if (handlerIndex !== -1) {
       // remove from handlers
-      subscriptionItem.handlers.splice(handlerIndex, 1);
 
+      const tmpHandler = subscriptionItem.handlers[handlerIndex];
+
+      subscriptionItem.handlers.splice(handlerIndex, 1);
       if (subscriptionItem.handlers.length === 0) {
         // unsubscribe from the channel, if it was the last handler
-        console.log('[unsubscribeBars]: Unsubscribe from streaming. Channel:', channelString);
-        socket.emit('SubRemove', { subs: [channelString] });
-        channelToSubscription.delete(channelString);
+        // socket.emit('SubRemove', { subs: [channelString] });
+        const msg = {
+          event: 'unsubscribe',
+          topic: tmpHandler.topic,
+          id: tmpHandler.topic,
+        };
+
+        ws.send(JSON.stringify(msg));
+
+        channelToSubscription.delete(topic);
         break;
       }
     }
