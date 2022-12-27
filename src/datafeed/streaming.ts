@@ -4,17 +4,13 @@ import { config } from '../near';
 
 import { getOrderlyConfig } from '../config';
 import { ResolutionToSeconds, parseFullSymbol, parseResolution } from './helpers';
-import io from 'socket.io-client';
 
 // import { WebSocket } from 'ws';
+import { getOrderlyWss } from '../orderly/constant';
 
 const channelToSubscription = new Map();
 
-const ws = new WebSocket(
-  `${getOrderlyConfig().ORDERLY_WS_ENDPOINT}/${
-    !!window.selector && window.selector.isSignedIn() ? window.selector.accountId : 'OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY'
-  }`
-);
+export const ws = new WebSocket(getOrderlyWss());
 
 function sendPing() {
   ws.send(
@@ -69,25 +65,18 @@ ws.onerror = (event) => {
 };
 
 ws.onmessage = (event) => {
-  console.log('[socket] Message:', event.data);
-
   const { data, topic, event: dataEvent } = JSON.parse(event.data);
-
-  console.log('dataEvent: ', dataEvent);
 
   if (dataEvent === 'ping') {
     sendPong();
     return;
   }
 
-  console.log('data: ', data, topic, 'topic');
-
   if (!topic || topic.indexOf('kline') === -1) {
-    console.log('return goto');
     return;
   }
 
-  const { endTime, high, low, open, startTime, close } = data;
+  const { high, low, open, startTime, close } = data;
 
   const subscriptionItem = channelToSubscription.get(topic);
   if (subscriptionItem === undefined) {
@@ -95,10 +84,8 @@ ws.onmessage = (event) => {
   }
 
   const lastBar = subscriptionItem.lastBar;
-  console.log('lastBar: ', lastBar);
 
   const nextDailyBarTime = getNextBarTime(lastBar.time, subscriptionItem.resolution);
-  console.log('nextDailyBarTime: ', nextDailyBarTime);
 
   let bar;
   if (startTime >= nextDailyBarTime) {
@@ -109,7 +96,6 @@ ws.onmessage = (event) => {
       low: low,
       close: close,
     };
-    console.log('[socket] Generate new bar', bar);
   } else {
     bar = {
       ...lastBar,
@@ -117,12 +103,8 @@ ws.onmessage = (event) => {
       low: Math.min(lastBar.low, low),
       close: close,
     };
-    console.log('[socket] Update the latest bar by price', low);
   }
   subscriptionItem.lastBar = bar;
-  console.log('subscriptionItem: ', subscriptionItem);
-
-  console.log('bar: ', bar);
 
   // send data to every subscriber of that symbol
   subscriptionItem.handlers.forEach((handler) => handler.callback(bar));
@@ -133,8 +115,6 @@ function getNextBarTime(barTime: number, resolution: string) {
 }
 
 export function subscribeOnStream(symbolInfo, resolution, onRealtimeCallback, subscriberUID, onResetCacheNeededCallback, lastBar) {
-  console.log('lastBar: ', lastBar);
-
   const parsedSymbol = parseFullSymbol(symbolInfo.full_name);
   const channelString = `0~${parsedSymbol.exchange}~${parsedSymbol.fromSymbol}~${parsedSymbol.toSymbol}`;
 

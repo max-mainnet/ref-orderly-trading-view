@@ -371,7 +371,15 @@ export const batchCreateOrder = async (props: { accountId: string; orderlyProps:
 export const getOrderlyPublic = async (url?: string) => {
   return await fetch(`${getOrderlyConfig().OFF_CHAIN_END_POINT}${url || ''}`, {
     method: 'GET',
-  }).then((res) => {
-    return res.json();
-  });
+  })
+    .then((res) => {
+      return res.json();
+    })
+    .catch((e) => {
+      return e;
+    });
+};
+
+export const getMarketTrades = async ({ symbol, limit }: { symbol: string; limit: number }) => {
+  return await getOrderlyPublic(`/v1/public/market_trades?symbol=${symbol}&limit=${limit}`);
 };
