@@ -1,9 +1,10 @@
 import * as React from 'react';
 import './index.css';
-import { widget, ChartingLibraryWidgetOptions, LanguageCode, IChartingLibraryWidget, ResolutionString } from '../../charting_library';
+import { widget, ChartingLibraryWidgetOptions, LanguageCode, IChartingLibraryWidget, ResolutionString, Timezone } from '../../charting_library';
 
 import datafeed from '../../datafeed';
 import { useOrderlyContext } from '../../orderly/OrderlyContext';
+import moment from 'moment';
 
 export interface ChartContainerProps {
   symbol: ChartingLibraryWidgetOptions['symbol'];
@@ -124,8 +125,16 @@ export function ChartContainer() {
     fullscreen: false,
     height: 500,
     autosize: true,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone as Timezone,
     studies_overrides: {},
+    toolbar_bg: '#0B141B',
+    overrides: {
+      'paneProperties.background': '#0B141B',
+      'paneProperties.backgroundType': 'solid', // or "gradient"
+    },
   };
+
+  console.log(Intl.DateTimeFormat().resolvedOptions().timeZone);
 
   React.useEffect(() => {
     const tvWidget = new widget(widgetOptions);
