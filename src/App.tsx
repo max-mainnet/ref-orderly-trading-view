@@ -1,21 +1,30 @@
 import * as React from 'react';
 import './App.css';
-import { TVChartContainer } from './components/TVChartContainer/index';
+import { TVChartContainer, ChartContainer } from './components/TVChartContainer/index';
 import { version } from './charting_library';
 import { WalletSelectorContextProvider } from './WalletSelectorContext';
 import { useMarketTrades } from './orderly/state';
 import OrderlyContextProvider from './orderly/OrderlyContext';
 import RecentTrade from './components/RecentTrade';
+import OrderBook from './components/OrderBook';
 function App() {
   return (
     <div className={'App'}>
       <WalletSelectorContextProvider>
         <OrderlyContextProvider>
           {/* <RecentTrade></RecentTrade> */}
-          <header className={'App-header'}>
-            <h1 className={'App-title'}>TradingView Charting Library and React Integration Example {version()}</h1>
-          </header>
-          <TVChartContainer />
+
+          <div className='w-full flex border '>
+            <div className='w-full border p-4 border-boxBorder rounded-2xl bg-opacity-10 bg-black'>
+              <ChartContainer />
+            </div>
+
+            <div>
+              <RecentTrade />
+
+              <OrderBook></OrderBook>
+            </div>
+          </div>
         </OrderlyContextProvider>
       </WalletSelectorContextProvider>
     </div>

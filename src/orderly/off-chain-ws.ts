@@ -1,6 +1,6 @@
 import useWebSocket, { ReadyState } from 'react-use-websocket';
-import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import { OrderlyWSConnection, Orders, MarketTrade } from './type';
+import React, { useState, useCallback, useEffect, useRef, useMemo, StrictMode } from 'react';
+import { OrderlyWSConnection, Orders, MarketTrade, Ticker } from './type';
 import { getOrderlyConfig } from '../config';
 import { useWalletSelector } from '../WalletSelectorContext';
 import { getPublicKey, generateRequestSignatureHeader, toNonDivisibleNumber } from './utils';
@@ -105,14 +105,24 @@ export const generateMarketDataFlow = ({ symbol }: { symbol: string }) => {
     },
     {
       id: `${symbol}@trade`,
+      event: 'request',
+      topic: `${symbol}@trade`,
+      params: {
+        type: 'trade',
+        symbol,
+        limit: 50,
+      },
+    },
+    {
+      id: `${symbol}@trade`,
       event: 'subscribe',
       topic: `${symbol}@trade`,
     },
-    // {
-    //   id: `${symbol}@bbo`,
-    //   event: 'subscribe',
-    //   topic: `${symbol}@bbo`,
-    // },
+    {
+      id: `tickers`,
+      event: 'subscribe',
+      topic: `tickers`,
+    },
   ];
 
   return data;
@@ -144,28 +154,10 @@ export const useOrderlyMarketData = ({ symbol }: { symbol: string }) => {
 
   const [orders, setOrders] = useState<Orders>();
 
+  const [ticker, setTicker] = useState<Ticker>();
+  console.log('ticker: ', ticker);
+
   const [marketTrade, setMarketTrade] = useState<MarketTrade>();
-
-  // function unSubscribe() {
-  //   if (!preSubScription || preSubScription.size === 0) return;
-
-  //   preSubScription.forEach((s) => {
-  //     if (s.event === 'subscribe') {
-  //       sendMessage(
-  //         JSON.stringify({
-  //           ...s,
-  //           event: 'unsubscribe',
-  //         })
-  //       );
-  //     }
-  //   });
-
-  //   preSubScription.clear();
-  // }
-
-  // useEffect(() => {
-  //   unSubscribe();
-  // }, [symbol]);
 
   // subscribe
   useEffect(() => {
@@ -205,7 +197,7 @@ export const useOrderlyMarketData = ({ symbol }: { symbol: string }) => {
     }
 
     // process orderbook update
-    if (lastJsonMessage?.topic === `${symbol}@orderbookupdate` && !!orders) {
+    if (lastJsonMessage?.id === `${symbol}@orderbookupdate` && !!orders) {
       // setOrders(lastJsonMessage.data);
 
       let asks = orders.asks;
@@ -253,8 +245,18 @@ export const useOrderlyMarketData = ({ symbol }: { symbol: string }) => {
     }
 
     //  process trade
-    if (lastJsonMessage?.topic === `${symbol}@trade`) {
-      setMarketTrade(lastJsonMessage.data);
+    if (lastJsonMessage?.id === `${symbol}@trade`) {
+      if (lastJsonMessage?.event === 'request') {
+        setMarketTrade(lastJsonMessage.data[0]);
+      } else setMarketTrade(lastJsonMessage.data);
+    }
+
+    if (lastJsonMessage?.topic === 'tickers') {
+      const tickers = lastJsonMessage.data;
+
+      const ticker = tickers.find((t: Ticker) => t.symbol === symbol);
+
+      if (ticker) setTicker(ticker);
     }
   }, [lastJsonMessage]);
 

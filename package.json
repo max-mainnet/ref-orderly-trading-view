@@ -19,6 +19,7 @@
     "bs58": "^5.0.0",
     "elliptic": "^6.5.4",
     "keccak256": "^1.0.6",
+    "moment": "^2.29.4",
     "near-api-js": "0.44.2",
     "postcss": "^8.4.20",
     "postcss-cli": "^9.1.0",

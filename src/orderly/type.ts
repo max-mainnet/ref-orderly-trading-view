@@ -32,13 +32,24 @@ export interface MarketTrade {
   symbol: string;
   price: number;
   size: number;
-  side: string;
+  side: 'BUY' | 'SELL';
 }
 
 export interface Trade {
   symbol: string;
-  side: string;
+  side: 'BUY' | 'SELL';
   executed_price: number;
   executed_quantity: number;
   executed_timestamp: number;
+}
+
+export interface Ticker {
+  symbol: string;
+  open: number;
+  close: number;
+  high: number;
+  low: number;
+  volume: number;
+  amount: number;
+  count: number;
 }

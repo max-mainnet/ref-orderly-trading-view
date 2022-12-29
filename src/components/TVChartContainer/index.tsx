@@ -3,6 +3,7 @@ import './index.css';
 import { widget, ChartingLibraryWidgetOptions, LanguageCode, IChartingLibraryWidget, ResolutionString } from '../../charting_library';
 
 import datafeed from '../../datafeed';
+import { useOrderlyContext } from '../../orderly/OrderlyContext';
 
 export interface ChartContainerProps {
   symbol: ChartingLibraryWidgetOptions['symbol'];
@@ -68,7 +69,8 @@ export class TVChartContainer extends React.PureComponent<Partial<ChartContainer
       charts_storage_url: this.props.chartsStorageUrl,
       charts_storage_api_version: this.props.chartsStorageApiVersion,
       client_id: this.props.clientId,
-      user_id: this.props.userId,
+
+      user_id: ' this.props.userId',
       fullscreen: this.props.fullscreen,
       autosize: this.props.autosize,
       studies_overrides: this.props.studiesOverrides,
@@ -94,4 +96,56 @@ export class TVChartContainer extends React.PureComponent<Partial<ChartContainer
   public render(): JSX.Element {
     return <div ref={this.ref} className={'TVChartContainer'} />;
   }
+}
+
+export function ChartContainer() {
+  const { symbol } = useOrderlyContext();
+
+  const [tvWidget, setTvWidget] = React.useState<IChartingLibraryWidget>();
+
+  const ref = React.useRef<HTMLDivElement>(null);
+
+  const widgetOptions: ChartingLibraryWidgetOptions = {
+    symbol: symbol,
+    // BEWARE: no trailing slash is expected in feed URL
+    // tslint:disable-next-line:no-any
+    theme: 'Dark',
+    datafeed: datafeed,
+    interval: 'D' as ResolutionString,
+    container: 'TVChartContainer',
+    library_path: '/charting_library/',
+    locale: getLanguageFromURL() || 'en',
+    disabled_features: ['use_localstorage_for_settings', 'left_toolbar'],
+    enabled_features: ['study_templates'],
+    charts_storage_url: 'https://saveload.tradingview.com',
+    charts_storage_api_version: '1.1',
+    client_id: 'tradingview.com',
+    user_id: 'public_user_id',
+    fullscreen: false,
+    height: 500,
+    autosize: true,
+    studies_overrides: {},
+  };
+
+  React.useEffect(() => {
+    const tvWidget = new widget(widgetOptions);
+
+    setTvWidget(tvWidget);
+  }, []);
+
+  React.useEffect(() => {
+    if (!tvWidget) return;
+
+    tvWidget.setSymbol(symbol, 'D' as ResolutionString, () => {});
+  }, [symbol]);
+
+  return (
+    <div
+      ref={ref}
+      id='TVChartContainer'
+      style={{
+        height: '500px',
+      }}
+    />
+  );
 }
