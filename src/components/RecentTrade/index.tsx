@@ -26,14 +26,14 @@ function RecentTrade() {
 
   return (
     <div
-      className='w-1/5 border border-boxBorder text-sm rounded-2xl bg-opacity-10 bg-black p-4 '
+      className='w-1/5 border border-boxBorder text-sm rounded-2xl  bg-black bg-opacity-10 p-4 '
       style={{
         minWidth: '320px',
       }}
     >
       <div className='text-white text-left mb-2'>Recent Trade</div>
 
-      <div className='flex items-center text-primary justify-between '>
+      <div className='flex mr-4 mb-1 items-center text-xs text-primary justify-between '>
         <div>
           <span>Price</span>
 
@@ -57,7 +57,7 @@ function RecentTrade() {
       >
         {recentTrades.map((trade, i) => {
           return (
-            <div key={'recent-trade-' + i} className='grid grid-cols-3 justify-items-end'>
+            <div key={'recent-trade-' + i} className='grid mr-2 mt-2.5 grid-cols-3 justify-items-end'>
               <span className={`justify-self-start ${trade.side === 'BUY' ? 'text-buyGreen' : 'text-sellRed'}`}>{trade.executed_price}</span>
               <span className='text-white'>{trade.executed_quantity}</span>
 

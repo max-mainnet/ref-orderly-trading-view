@@ -15,14 +15,19 @@ function App() {
           {/* <RecentTrade></RecentTrade> */}
 
           <div className='w-full flex border '>
-            <div className='w-full border p-4 border-boxBorder rounded-2xl bg-opacity-10 bg-black'>
+            <div
+              className='w-full border p-4 border-boxBorder rounded-2xl bg-cardBg'
+              style={{
+                height: '540px',
+              }}
+            >
               <ChartContainer />
             </div>
 
             <div>
-              <RecentTrade />
+              <OrderBook />
 
-              <OrderBook></OrderBook>
+              <RecentTrade />
             </div>
           </div>
         </OrderlyContextProvider>

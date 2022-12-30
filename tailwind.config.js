@@ -7,6 +7,7 @@ module.exports = {
         primary: '#7E8A93',
         sellRed: '#F96767',
         buyGreen: '#90E3B9',
+        cardBg: '#101D26',
       },
     },
   },

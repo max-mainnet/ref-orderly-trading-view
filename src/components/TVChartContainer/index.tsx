@@ -127,9 +127,9 @@ export function ChartContainer() {
     autosize: true,
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone as Timezone,
     studies_overrides: {},
-    toolbar_bg: '#0B141B',
+    toolbar_bg: '#101D26',
     overrides: {
-      'paneProperties.background': '#0B141B',
+      'paneProperties.background': '#101D26',
       'paneProperties.backgroundType': 'solid', // or "gradient"
     },
   };

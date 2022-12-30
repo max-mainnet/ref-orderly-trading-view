@@ -1,8 +1,27 @@
+@import url('https://cdn.rawgit.com/mfd/f3d96ec7f0e8f034cc22ea73b3797b59/raw/856f1dbb8d807aabceb80b6d4f94b464df461b3e/gotham.css');
+
 .App {
   text-align: center;
   background: rgb(19, 33, 42);
   font-family: GothamPro;
   font-weight: 400;
+}
+
+::-webkit-scrollbar {
+  width: 9px;
+  /* height: 4px; */
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0);
+  background: rgb(25, 34, 41);
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(38, 46, 53);
+  border-radius: 2px;
 }
 
 .App-header {
