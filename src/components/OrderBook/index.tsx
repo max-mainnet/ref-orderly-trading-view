@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useOrderlyContext } from '../../orderly/OrderlyContext';
 
 function parseSymbol(fullName: string) {
@@ -10,9 +10,8 @@ function parseSymbol(fullName: string) {
 
 function OrderBook() {
   const { orders, marketTrade, symbol } = useOrderlyContext();
-  console.log('marketTrade: ', marketTrade);
-
   console.log('orders: ', orders);
+
   const { symbolFrom, symbolTo } = parseSymbol(symbol);
 
   return (
@@ -41,7 +40,25 @@ function OrderBook() {
       </div>
 
       {/* sell  */}
-      <section></section>
+      <section
+        className='text-xs flex flex-col-reverse overflow-auto text-white '
+        id='sell-order-book-panel'
+        style={{
+          maxHeight: '140px',
+        }}
+      >
+        {orders?.asks.map((order, i) => {
+          return (
+            <div className='grid grid-cols-3 justify-items-end' key={'orderbook-ask-' + i}>
+              <span className='text-sellRed justify-self-start'>{order[0]}</span>
+
+              <span className=''>{order[1]}</span>
+
+              <span>{(order[1] * order[0]).toFixed(2)}</span>
+            </div>
+          );
+        })}
+      </section>
 
       {/* market trade */}
 
@@ -49,7 +66,24 @@ function OrderBook() {
 
       {/* buy */}
 
-      <section></section>
+      <section
+        className='text-xs overflow-auto text-white'
+        style={{
+          maxHeight: '140px',
+        }}
+      >
+        {orders?.bids.map((order, i) => {
+          return (
+            <div className='grid grid-cols-3 justify-items-end' key={'orderbook-ask-' + i}>
+              <span className='text-buyGreen justify-self-start'>{order[0]}</span>
+
+              <span className=''>{order[1]}</span>
+
+              <span>{(order[1] * order[0]).toFixed(2)}</span>
+            </div>
+          );
+        })}
+      </section>
     </div>
   );
 }
