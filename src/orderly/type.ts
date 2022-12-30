@@ -53,3 +53,10 @@ export interface Ticker {
   amount: number;
   count: number;
 }
+
+export interface TokenInfo {
+  token: string;
+  token_account_id: string;
+  decimals: number;
+  minimum_increment: number;
+}

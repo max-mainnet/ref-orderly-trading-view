@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Trade } from './type';
-import { getMarketTrades } from './off-chain-api';
+import { Trade, TokenInfo } from './type';
+import { getMarketTrades, getOrderlyPublic } from './off-chain-api';
 
 const useIntervalAsync = <R = unknown>(fn: () => Promise<R>, ms: number) => {
   const runningCount = useRef(0);
@@ -57,4 +57,16 @@ export function useMarketTrades({ symbol, limit }: { symbol: string; limit: numb
   useIntervalAsync(setFunc, 3000);
 
   return trades;
+}
+
+export function useTokenInfo() {
+  const [tokenInfo, setTokenInfo] = useState<TokenInfo[]>();
+
+  useEffect(() => {
+    getOrderlyPublic('/v1/public/token').then((res) => {
+      setTokenInfo(res?.data?.rows);
+    });
+  }, []);
+
+  return tokenInfo;
 }

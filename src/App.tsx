@@ -7,6 +7,7 @@ import { useMarketTrades } from './orderly/state';
 import OrderlyContextProvider from './orderly/OrderlyContext';
 import RecentTrade from './components/RecentTrade';
 import OrderBook from './components/OrderBook';
+import ChartHeader from './components/ChartHeader';
 function App() {
   return (
     <div className={'App'}>
@@ -21,6 +22,7 @@ function App() {
                 height: '540px',
               }}
             >
+              <ChartHeader></ChartHeader>
               <ChartContainer />
             </div>
 

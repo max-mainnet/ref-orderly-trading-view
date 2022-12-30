@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { OrderlyContext, useOrderlyContext } from '../../orderly/OrderlyContext';
 import moment from 'moment';
 
-function parseSymbol(fullName: string) {
+export function parseSymbol(fullName: string) {
   return {
     symbolFrom: fullName.split('_')[1],
     symbolTo: fullName.split('_')[2],

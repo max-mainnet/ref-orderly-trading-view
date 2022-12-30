@@ -2,9 +2,9 @@
 
 .App {
   text-align: center;
-  background: rgb(19, 33, 42);
   font-family: GothamPro;
   font-weight: 400;
+  background: rgb(19, 33, 42);
 }
 
 ::-webkit-scrollbar {

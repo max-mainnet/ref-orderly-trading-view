@@ -55,7 +55,6 @@ ws.onmessage = (event) => {
 
 ws.onclose = (event) => {
   console.log('close event: ', event);
-  alert('close');
 };
 
 ws.onerror = (event) => {

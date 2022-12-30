@@ -155,7 +155,6 @@ export const useOrderlyMarketData = ({ symbol }: { symbol: string }) => {
   const [orders, setOrders] = useState<Orders>();
 
   const [ticker, setTicker] = useState<Ticker>();
-  console.log('ticker: ', ticker);
 
   const [marketTrade, setMarketTrade] = useState<MarketTrade>();
 
@@ -264,6 +263,7 @@ export const useOrderlyMarketData = ({ symbol }: { symbol: string }) => {
     lastJsonMessage,
     marketTrade,
     orders,
+    ticker,
   };
 };
 
