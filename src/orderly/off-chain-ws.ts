@@ -104,7 +104,12 @@ export const generateMarketDataFlow = ({ symbol }: { symbol: string }) => {
       topic: `${symbol}@orderbookupdate`,
     },
     {
-      id: `${symbol}@trade`,
+      id: `${symbol}@trade-sub`,
+      event: 'subscribe',
+      topic: `${symbol}@trade`,
+    },
+    {
+      id: `${symbol}@trade-req`,
       event: 'request',
       topic: `${symbol}@trade`,
       params: {
@@ -118,11 +123,6 @@ export const generateMarketDataFlow = ({ symbol }: { symbol: string }) => {
       event: 'subscribe',
       topic: `markprices`,
       ts: Date.now(),
-    },
-    {
-      id: `${symbol}@trade`,
-      event: 'subscribe',
-      topic: `${symbol}@trade`,
     },
     {
       id: `tickers`,
@@ -204,10 +204,12 @@ export const useOrderlyMarketData = ({ symbol }: { symbol: string }) => {
     }
 
     // process orderbook update
-    if (lastJsonMessage?.id === `${symbol}@orderbookupdate` && !!orders) {
+    if (lastJsonMessage?.topic === `${symbol}@orderbookupdate` && !!orders) {
+      console.log('lastJsonMessage: ', lastJsonMessage);
       // setOrders(lastJsonMessage.data);
 
       let asks = orders.asks;
+      console.log('asks11111: ', asks);
 
       lastJsonMessage.data.asks.forEach((ask: number[]) => {
         const price = ask[0];
@@ -226,6 +228,7 @@ export const useOrderlyMarketData = ({ symbol }: { symbol: string }) => {
       });
 
       let bids = orders.bids;
+      console.log('bids111111: ', bids);
 
       lastJsonMessage.data.bids.forEach((bid: number[]) => {
         const price = bid[0];
@@ -245,14 +248,14 @@ export const useOrderlyMarketData = ({ symbol }: { symbol: string }) => {
 
       setOrders({
         ...orders,
-        asks,
-        bids,
+        asks: asks.sort((a1, a2) => a1[0] - a2[0]),
+        bids: bids.sort((b1, b2) => b2[0] - b1[0]),
         ts: lastJsonMessage.ts,
       });
     }
 
     //  process trade
-    if (lastJsonMessage?.id === `${symbol}@trade`) {
+    if ((lastJsonMessage?.id && lastJsonMessage?.id.includes(`${symbol}@trade`)) || lastJsonMessage?.topic === `${symbol}@trade`) {
       if (lastJsonMessage?.event === 'request') {
         setMarketTrade(lastJsonMessage.data[0]);
       } else setMarketTrade(lastJsonMessage.data);

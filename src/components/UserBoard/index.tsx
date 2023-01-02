@@ -11,6 +11,7 @@ import './index.css';
 import { FaMinus, FaPlus } from 'react-icons/fa';
 function UserBoard() {
   const { symbol, setSymbol, tokenInfo, ticker, marketTrade, markPrices } = useOrderlyContext();
+  console.log('markPrices: ', markPrices);
 
   const { accountId, modal, selector } = useWalletSelector();
 
@@ -85,6 +86,7 @@ function UserBoard() {
   const tokenOutHolding = holdings && holdings.find((h) => h.token === symbolTo)?.holding;
 
   const markPriceSymbol = markPrices && markPrices.find((m) => m.symbol === symbol);
+  console.log('markPriceSymbol: ', markPriceSymbol);
 
   const fee =
     orderType === 'Limit'
@@ -93,7 +95,7 @@ function UserBoard() {
         : (userInfo.maker_fee_rate / 10000) * Number(limitPrice || 0) * Number(inputValue || 0)
       : !userInfo || !markPriceSymbol
       ? '-'
-      : (userInfo.maker_fee_rate / 10000) * Number(markPriceSymbol.price || 0) * Number(inputValue || 0);
+      : (userInfo.taker_fee_rate / 10000) * Number(markPriceSymbol.price || 0) * Number(inputValue || 0);
 
   const total =
     orderType === 'Limit'
@@ -113,7 +115,7 @@ function UserBoard() {
           side: side,
           symbol: symbol,
           order_type: 'MARKET',
-          order_amount: Number(inputValue),
+          order_quantity: Number(inputValue),
         },
       });
     } else if (orderType === 'Limit') {
@@ -124,7 +126,7 @@ function UserBoard() {
           symbol: symbol,
           order_price: Number(limitPrice),
           order_type: 'LIMIT',
-          order_amount: Number(inputValue),
+          order_quantity: Number(inputValue),
         },
       });
     }
@@ -248,6 +250,8 @@ function UserBoard() {
             className='text-white text-xl w-full'
             value={inputValue}
             type='number'
+            step='any'
+            min={0}
             onChange={(e) => {
               setInputValue(e.target.value);
             }}
@@ -272,6 +276,8 @@ function UserBoard() {
             </span>
             <input
               type='number'
+              step='any'
+              min={0}
               className='text-white text-center text-xl w-full'
               value={limitPrice}
               onChange={(e) => {
