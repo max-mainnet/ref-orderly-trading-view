@@ -60,3 +60,26 @@ export interface TokenInfo {
   decimals: number;
   minimum_increment: number;
 }
+
+export interface Holding {
+  token: string;
+  holding: number;
+  frozen: number;
+  pending_short: number;
+  updated_time: number;
+}
+
+export interface ClientInfo {
+  account_id: string;
+  email: string;
+  account_mode: string;
+  tier: string;
+  taker_fee_rate: number;
+  maker_fee_rate: number;
+  maintenance_cancel_orders: boolean;
+}
+
+export interface MarkPrice {
+  symbol: string;
+  price: number;
+}

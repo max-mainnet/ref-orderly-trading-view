@@ -8,31 +8,16 @@ import {
   deposit_exact_token,
 } from './on-chain-api';
 import { Transaction as WSTransaction } from '@near-wallet-selector/core';
-import {
-  find_orderly_functionCall_key,
-  getNormalizeTradingKey,
-  toNonDivisibleNumber,
-} from './utils';
-import {
-  getAddFunctionCallKeyTransaction,
-  ORDERLY_ASSET_MANAGER,
-} from '../near';
+import { find_orderly_functionCall_key, getNormalizeTradingKey, toNonDivisibleNumber } from './utils';
+import { getAddFunctionCallKeyTransaction, ORDERLY_ASSET_MANAGER } from '../near';
 import { KeyPair } from 'near-api-js';
-import {
-  Transaction,
-  getFunctionCallTransaction,
-  near,
-  getGas,
-  getAmount,
-} from '../near';
+import { Transaction, getFunctionCallTransaction, near, getGas, getAmount } from '../near';
 
 import { functionCall } from 'near-api-js/lib/transaction';
 import { REGISTER_DEPOSIT_AMOUNT } from './on-chain-api';
 import { getFTmetadata } from '../near';
-import {
-  formatNearAmount,
-  parseNearAmount,
-} from 'near-api-js/lib/utils/format';
+import { formatNearAmount, parseNearAmount } from 'near-api-js/lib/utils/format';
+import BN from 'bn.js';
 
 const signAndSendTransactions = async (transactions: Transaction[]) => {
   const wsTransactions = await getFunctionCallTransaction(transactions);
@@ -69,11 +54,11 @@ const storageDeposit = async (accountId: string) => {
   const storage_amount = await get_storage_deposit_amount(accountId);
 
   // if (storage_amount !== null) {
-  const deposit_functionCall = orderly_storage_deposit(
-    accountId,
-    REGISTER_DEPOSIT_AMOUNT,
-    false
-  );
+  const deposit_functionCall = orderly_storage_deposit(accountId, REGISTER_DEPOSIT_AMOUNT, false);
+
+  const account = await near.account(accountId);
+
+  // await account.functionCall(ORDERLY_ASSET_MANAGER, 'storage_deposit', {}, new BN(deposit_functionCall.gas), new BN(deposit_functionCall.));
 
   const transaction: Transaction = {
     receiverId: ORDERLY_ASSET_MANAGER,
@@ -81,13 +66,13 @@ const storageDeposit = async (accountId: string) => {
   };
 
   return signAndSendTransactions([transaction]);
-  // }
 };
 
 const registerOrderly = async (accountId: string) => {
   // let wsTransactions: WSTransaction[] = [];
 
   const account = await near.account(accountId);
+  console.log('account: ', account);
 
   // const account_exist = await user_account_exists(accountId);
 
@@ -105,13 +90,9 @@ const registerOrderly = async (accountId: string) => {
 
   await account.functionCall(ORDERLY_ASSET_MANAGER, 'user_announce_key', {});
 
-  await account.functionCall(
-    ORDERLY_ASSET_MANAGER,
-    'user_request_set_trading_key',
-    {
-      key: getNormalizeTradingKey(),
-    }
-  );
+  await account.functionCall(ORDERLY_ASSET_MANAGER, 'user_request_set_trading_key', {
+    key: getNormalizeTradingKey(),
+  });
 
   // // set functionCall key and set trading key
   // transactions.push({
@@ -142,22 +123,10 @@ const depositFT = async (token: string, amount: string) => {
 
   transactions.push({
     receiverId: token,
-    functionCalls: [
-      await deposit_exact_token(
-        toNonDivisibleNumber(metaData.decimals, amount)
-      ),
-    ],
+    functionCalls: [await deposit_exact_token(toNonDivisibleNumber(metaData.decimals, amount))],
   });
 
   return signAndSendTransactions(transactions);
 };
 
-export {
-  signAndSendTransactions,
-  registerOrderly,
-  announceKey,
-  storageDeposit,
-  depositNEAR,
-  depositFT,
-  signAndSendTransaction,
-};
+export { signAndSendTransactions, registerOrderly, announceKey, storageDeposit, depositNEAR, depositFT, signAndSendTransaction };

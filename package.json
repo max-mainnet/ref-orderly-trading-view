@@ -31,18 +31,21 @@
     "react-use-websocket": "4.0.0",
     "socket.io-client": "^4.5.4",
     "tailwindcss": "^3.2.4",
-    "typescript": "^4.9.4"
+    "typescript": "^4.9.4",
+    "react-micro-modal": "^2.0.2",
+    "react-modal": "^3.13.1"
   },
   "devDependencies": {
     "@types/elliptic": "^6.4.14",
+    "@types/react-modal": "^3.12.0",
     "buffer": "^5.5.0",
     "process": "0.11.10"
   },
   "scripts": {
-    "start:testnet": "REACT_APP_NEAR_ENV=testnet react-scripts start",
-    "start:pub-testnet": "REACT_APP_NEAR_ENV=pub-testnet react-scripts start",
-    "start:mainnet": "REACT_APP_NEAR_ENV=mainnet react-scripts start",
-    "build:testnet": "REACT_APP_NEAR_ENV=testnet react-scripts build",
+    "start:testnet": "REACT_APP_NEAR_ENV=testnet NEAR_ENV=testnet react-scripts start",
+    "start:pub-testnet": "REACT_APP_NEAR_ENV=pub-testnet NEAR_ENV=pub-testnet react-scripts start",
+    "start:mainnet": "REACT_APP_NEAR_ENV=mainnet NEAR_ENV=mainnet react-scripts start",
+    "build:testnet": "REACT_APP_NEAR_ENV=testnet NEAR_ENV=testnet react-scripts build",
     "build:mainnet": "REACT_APP_NEAR_ENV=mainnet react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"

@@ -26,7 +26,7 @@ function RecentTrade() {
 
   return (
     <div
-      className='w-1/5 border border-boxBorder text-sm rounded-2xl  bg-black bg-opacity-10 p-4 '
+      className='w-full border border-boxBorder text-sm rounded-2xl  bg-black bg-opacity-10 p-4 '
       style={{
         minWidth: '320px',
       }}

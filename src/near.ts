@@ -5,6 +5,7 @@ import { Near, keyStores, utils, WalletConnection, providers } from 'near-api-js
 import { Transaction as WSTransaction, AddKeyAction, AddKeyPermission } from '@near-wallet-selector/core';
 
 import BN from 'bn.js';
+import { getOrderlyConfig } from './config';
 export interface ViewFunctionOptions {
   methodName: string;
   args?: object;
@@ -28,6 +29,7 @@ export interface Transaction {
 export const keyStore = new keyStores.BrowserLocalStorageKeyStore();
 
 export const config = getConfig();
+console.log('config: ', config);
 
 export const near = new Near({
   keyStore,
@@ -35,7 +37,8 @@ export const near = new Near({
   ...config,
 });
 
-export const ORDERLY_ASSET_MANAGER = config.ORDERLY_ASSET_MANAGER;
+export const ORDERLY_ASSET_MANAGER = getOrderlyConfig().ORDERLY_ASSET_MANAGER;
+console.log('ORDERLY_ASSET_MANAGER: ', ORDERLY_ASSET_MANAGER);
 
 export const orderlyViewFunction = async ({ methodName, args }: ViewFunctionOptions) => {
   const nearConnection = await near.account(ORDERLY_ASSET_MANAGER);

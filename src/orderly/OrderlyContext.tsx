@@ -1,6 +1,6 @@
 import React, { useContext, createContext, useState, useEffect } from 'react';
 import { useOrderlyMarketData } from './off-chain-ws';
-import { MarketTrade, Orders, TokenInfo, Trade, Ticker } from './type';
+import { MarketTrade, Orders, TokenInfo, Trade, Ticker, MarkPrice } from './type';
 import { useMarketTrades, useTokenInfo } from './state';
 
 interface OrderlyContextValue {
@@ -12,6 +12,7 @@ interface OrderlyContextValue {
   recentTrades: Trade[];
   tokenInfo: TokenInfo[] | undefined;
   ticker: Ticker | undefined;
+  markPrices: MarkPrice[] | undefined;
 }
 
 export const OrderlyContext = createContext<OrderlyContextValue | null>(null);

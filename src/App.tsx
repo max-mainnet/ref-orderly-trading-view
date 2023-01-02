@@ -8,6 +8,7 @@ import OrderlyContextProvider from './orderly/OrderlyContext';
 import RecentTrade from './components/RecentTrade';
 import OrderBook from './components/OrderBook';
 import ChartHeader from './components/ChartHeader';
+import UserBoard from './components/UserBoard';
 function App() {
   return (
     <div className={'App'}>
@@ -17,19 +18,23 @@ function App() {
 
           <div className='w-full flex border '>
             <div
-              className='w-full border p-4 border-boxBorder rounded-2xl bg-cardBg'
+              className='w-3/5 border p-4 border-boxBorder rounded-2xl bg-cardBg'
               style={{
-                height: '540px',
+                height: '570px',
               }}
             >
               <ChartHeader></ChartHeader>
               <ChartContainer />
             </div>
 
-            <div>
+            <div className='w-1/5'>
               <OrderBook />
 
               <RecentTrade />
+            </div>
+
+            <div className='w-1/5'>
+              <UserBoard></UserBoard>
             </div>
           </div>
         </OrderlyContextProvider>

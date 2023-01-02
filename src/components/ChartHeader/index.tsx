@@ -16,7 +16,6 @@ function formatWithCommas(value: string): string {
 
 function ChartHeader() {
   const { symbol, setSymbol, tokenInfo, ticker } = useOrderlyContext();
-  console.log('ticker: ', ticker);
 
   const { symbolFrom, symbolTo } = parseSymbol(symbol);
 
@@ -53,7 +52,6 @@ function ChartHeader() {
   }, [idTo]);
 
   const diff = ticker ? ((ticker.close - ticker.open) * 100) / ticker.open : 0;
-  console.log('diff: ', diff);
 
   const disPlayDiff = Math.abs(diff) < 0.01 && Math.abs(diff) > 0 ? '<0.01' : Math.abs(diff).toFixed(2);
 
@@ -79,11 +77,11 @@ function ChartHeader() {
 
               <span
                 className={`${
-                  diff < 0 ? 'text-sellRed bg-sellRed' : 'text-buyGreen bg-buyGreen'
+                  diff < 0 ? 'text-sellRed bg-sellRed' : diff > 0 ? 'text-buyGreen bg-buyGreen' : 'text-white'
                 } bg-opacity-10 text-xs flex items-center  rounded-md ml-2 px-1 py-0.5`}
               >
                 {' '}
-                <span className='relative '>{diff > 0 ? <IoArrowUpOutline /> : <IoArrowDownOutline />}</span>
+                <span className='relative '>{diff > 0 ? <IoArrowUpOutline /> : diff < 0 ? <IoArrowDownOutline /> : null}</span>
                 <span>{disPlayDiff}%</span>
               </span>
             </div>

@@ -1,6 +1,6 @@
 import { getOrderlyConfig } from '../config';
 import { getPublicKey, generateRequestSignatureHeader, get_orderly_private_key_path, get_orderly_public_key_path } from './utils';
-import { OrderlyOrder, EditOrderlyOrder } from './type';
+import { OrderlyOrder, EditOrderlyOrder, ClientInfo } from './type';
 import { get_user_trading_key } from './on-chain-api';
 import { ec } from 'elliptic';
 import { generateOrderSignature, OFF_CHAIN_METHOD, formateParams } from './utils';
@@ -137,6 +137,28 @@ export const createOrder = async (props: { accountId: string; orderlyProps: Orde
     url: '/v1/order',
     body,
   });
+};
+
+export const getAccountInformation = async (props: { accountId: string }): Promise<ClientInfo> => {
+  const url = '/v1/client/info';
+
+  const res = await requestOrderly({
+    url,
+    accountId: props.accountId,
+  });
+
+  return res.data;
+};
+
+export const getCurrentHolding = async (props: { accountId: string }) => {
+  const url = '/v1/client/holding';
+
+  const res = requestOrderly({
+    url,
+    accountId: props.accountId,
+  });
+
+  return res;
 };
 
 export const getAssetHistory = async (props: {

@@ -1,6 +1,6 @@
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 import React, { useState, useCallback, useEffect, useRef, useMemo, StrictMode } from 'react';
-import { OrderlyWSConnection, Orders, MarketTrade, Ticker } from './type';
+import { OrderlyWSConnection, Orders, MarketTrade, Ticker, MarkPrice } from './type';
 import { getOrderlyConfig } from '../config';
 import { useWalletSelector } from '../WalletSelectorContext';
 import { getPublicKey, generateRequestSignatureHeader, toNonDivisibleNumber } from './utils';
@@ -114,6 +114,12 @@ export const generateMarketDataFlow = ({ symbol }: { symbol: string }) => {
       },
     },
     {
+      id: `markprices`,
+      event: 'subscribe',
+      topic: `markprices`,
+      ts: Date.now(),
+    },
+    {
       id: `${symbol}@trade`,
       event: 'subscribe',
       topic: `${symbol}@trade`,
@@ -157,6 +163,8 @@ export const useOrderlyMarketData = ({ symbol }: { symbol: string }) => {
   const [ticker, setTicker] = useState<Ticker>();
 
   const [marketTrade, setMarketTrade] = useState<MarketTrade>();
+
+  const [markPrices, setMarkPrices] = useState<MarkPrice[]>();
 
   // subscribe
   useEffect(() => {
@@ -257,6 +265,12 @@ export const useOrderlyMarketData = ({ symbol }: { symbol: string }) => {
 
       if (ticker) setTicker(ticker);
     }
+
+    if (lastJsonMessage?.topic === 'markprices') {
+      const markPrices = lastJsonMessage.data;
+
+      setMarkPrices(markPrices);
+    }
   }, [lastJsonMessage]);
 
   return {
@@ -264,6 +278,7 @@ export const useOrderlyMarketData = ({ symbol }: { symbol: string }) => {
     marketTrade,
     orders,
     ticker,
+    markPrices,
   };
 };
 
