@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useOrderlyContext } from '../../orderly/OrderlyContext';
 import { parseSymbol } from '../RecentTrade/index';
 import { nearMetadata, getFTmetadata } from '../../near';
@@ -41,6 +41,10 @@ function UserBoard() {
     const wallet = await selector.wallet();
     return wallet.signOut();
   };
+
+  const inputLimitPriceRef = useRef<HTMLInputElement>(null);
+
+  const inputAmountRef = useRef<HTMLInputElement>(null);
 
   const [symbolsArr] = useState(['e', 'E', '+', '-']);
 
@@ -247,6 +251,8 @@ function UserBoard() {
           <input
             autoFocus
             inputMode='decimal'
+            ref={inputAmountRef}
+            onWheel={(e) => (inputAmountRef.current ? inputAmountRef.current.blur() : null)}
             className='text-white text-xl w-full'
             value={inputValue}
             type='number'
@@ -271,12 +277,19 @@ function UserBoard() {
           </div>
 
           <div className='flex items-center mt-3'>
-            <span>
+            <span
+              className='cursor-pointer'
+              onClick={() => {
+                setLimitPrice(Number(limitPrice) >= 1 ? (Number(limitPrice) - 1).toString() : limitPrice);
+              }}
+            >
               <FaMinus></FaMinus>
             </span>
             <input
               type='number'
               step='any'
+              ref={inputLimitPriceRef}
+              onWheel={(e) => (inputLimitPriceRef.current ? inputLimitPriceRef.current?.blur() : null)}
               min={0}
               className='text-white text-center text-xl w-full'
               value={limitPrice}
@@ -286,7 +299,12 @@ function UserBoard() {
               inputMode='decimal'
               onKeyDown={(e) => symbolsArr.includes(e.key) && e.preventDefault()}
             />
-            <span>
+            <span
+              className='cursor-pointer'
+              onClick={() => {
+                setLimitPrice((Number(limitPrice) + 1).toString());
+              }}
+            >
               <FaPlus></FaPlus>
             </span>
           </div>
