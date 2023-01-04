@@ -10,7 +10,8 @@ import { BuyButton, SellButton } from './Button';
 import './index.css';
 import { FaMinus, FaPlus } from 'react-icons/fa';
 function UserBoard() {
-  const { symbol, setSymbol, tokenInfo, ticker, marketTrade, markPrices } = useOrderlyContext();
+  const { symbol, setSymbol, tokenInfo, ticker, marketTrade, markPrices, balances } = useOrderlyContext();
+  console.log('balances: ', balances);
   console.log('markPrices: ', markPrices);
 
   const { accountId, modal, selector } = useWalletSelector();
@@ -85,9 +86,9 @@ function UserBoard() {
     }
   }, [idTo]);
 
-  const tokenInHolding = holdings && holdings.find((h) => h.token === symbolFrom)?.holding;
+  const tokenInHolding = (balances && balances[symbolFrom]?.holding) || (holdings && holdings.find((h) => h.token === symbolFrom)?.holding);
 
-  const tokenOutHolding = holdings && holdings.find((h) => h.token === symbolTo)?.holding;
+  const tokenOutHolding = (balances && balances[symbolTo]?.holding) || (holdings && holdings.find((h) => h.token === symbolTo)?.holding);
 
   const markPriceSymbol = markPrices && markPrices.find((m) => m.symbol === symbol);
   console.log('markPriceSymbol: ', markPriceSymbol);

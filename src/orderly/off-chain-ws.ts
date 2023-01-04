@@ -1,6 +1,6 @@
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 import React, { useState, useCallback, useEffect, useRef, useMemo, StrictMode } from 'react';
-import { OrderlyWSConnection, Orders, MarketTrade, Ticker, MarkPrice } from './type';
+import { OrderlyWSConnection, Orders, MarketTrade, Ticker, MarkPrice, Balance } from './type';
 import { getOrderlyConfig } from '../config';
 import { useWalletSelector } from '../WalletSelectorContext';
 import { getPublicKey, generateRequestSignatureHeader, toNonDivisibleNumber } from './utils';
@@ -290,9 +290,8 @@ export const useOrderlyPrivateData = () => {
 
   const [authPass, setAuthPass] = useState(false);
   const { accountId } = useWalletSelector();
-  const [lastSuccess, setLastSuccess] = useState(false);
 
-  const [initData, setInitData] = useState<OrderlyWSConnection[]>();
+  const [balances, setBalances] = useState<Record<string, Balance>>({});
 
   const [orderlyKey, setOrderlyKey] = useState('');
 
@@ -301,7 +300,7 @@ export const useOrderlyPrivateData = () => {
   const time_stamp = useMemo(() => Date.now(), []);
 
   useEffect(() => {
-    if (!accountId) throw NotSignInError;
+    if (!accountId) return;
 
     generateRequestSignatureHeader({
       accountId,
@@ -312,7 +311,7 @@ export const useOrderlyPrivateData = () => {
   }, []);
 
   useEffect(() => {
-    if (!accountId) throw NotSignInError;
+    if (!accountId) return;
 
     getPublicKey(accountId).then((res) => {
       setOrderlyKey(res);
@@ -323,7 +322,7 @@ export const useOrderlyPrivateData = () => {
     if (!orderlyKey || !requestSignature) return;
 
     const authData = {
-      id: '123r',
+      id: 'auth',
       event: 'auth',
       params: {
         timestamp: time_stamp,
@@ -335,37 +334,33 @@ export const useOrderlyPrivateData = () => {
     sendMessage(JSON.stringify(authData));
   }, [orderlyKey, requestSignature]);
 
-  const handlePing = () => {
-    if (!authPass) return;
-    sendMessage(
-      JSON.stringify({
-        id: '',
-        event: 'ping',
-        ts: Date.now(),
-      })
-    );
-  };
-
-  useInterval(handlePing, 5000);
-
   useEffect(() => {
     if (lastJsonMessage && lastJsonMessage.event === 'auth' && lastJsonMessage.success === true) {
       setAuthPass(true);
     }
+
+    if (lastJsonMessage?.event === 'ping') {
+      sendMessage(JSON.stringify({ event: 'pong', ts: Date.now() + 500 }));
+    }
+
+    if (lastJsonMessage?.topic === 'balance') {
+      setBalances(lastJsonMessage.data.balances);
+    }
   }, [lastJsonMessage]);
 
   useEffect(() => {
-    if (lastJsonMessage) {
-      setLastSuccess(lastJsonMessage.success);
-    }
+    if (!authPass) return;
 
-    // handlePing();
-  }, [lastJsonMessage]);
+    sendMessage(
+      JSON.stringify({
+        id: 'balance',
+        topic: 'balance',
+        event: 'subscribe',
+      })
+    );
+  }, [authPass]);
 
   return {
-    connectionStatus,
-    messageHistory,
-    lastMessage,
-    lastSuccess,
+    balances,
   };
 };

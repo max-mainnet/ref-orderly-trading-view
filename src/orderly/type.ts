@@ -83,3 +83,21 @@ export interface MarkPrice {
   symbol: string;
   price: number;
 }
+
+export interface Balance {
+  holding: number;
+  frozen: number;
+  interest: number;
+  pendingShortQty: number;
+  pendingExposure: number;
+  pendingLongQty: number;
+  pendingLongExposure: number;
+  version: number;
+  staked: number;
+  unbonding: number;
+  vault: number;
+  averageOpenPrice: number;
+  pnl24H: number;
+  fee24H: number;
+  markPrice: number;
+}
