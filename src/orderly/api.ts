@@ -6,6 +6,7 @@ import {
   user_request_set_trading_key,
   user_deposit_native_token,
   deposit_exact_token,
+  user_request_withdraw,
 } from './on-chain-api';
 import { Transaction as WSTransaction } from '@near-wallet-selector/core';
 import { find_orderly_functionCall_key, getNormalizeTradingKey, toNonDivisibleNumber } from './utils';
@@ -129,4 +130,35 @@ const depositFT = async (token: string, amount: string) => {
   return signAndSendTransactions(transactions);
 };
 
-export { signAndSendTransactions, registerOrderly, announceKey, storageDeposit, depositNEAR, depositFT, signAndSendTransaction };
+const depositOrderly = async (token: string, amount: string) => {
+  if (token === 'near') {
+    return depositNEAR(amount);
+  } else {
+    return depositFT(token, amount);
+  }
+};
+
+const withdrawOrderly = async (token: string, amount: string) => {
+  const transactions: Transaction[] = [];
+
+  const metaData = await getFTmetadata(token);
+
+  transactions.push({
+    receiverId: token,
+    functionCalls: [await user_request_withdraw(token, toNonDivisibleNumber(metaData.decimals, amount))],
+  });
+
+  return signAndSendTransactions(transactions);
+};
+
+export {
+  signAndSendTransactions,
+  withdrawOrderly,
+  depositOrderly,
+  registerOrderly,
+  announceKey,
+  storageDeposit,
+  depositNEAR,
+  depositFT,
+  signAndSendTransaction,
+};

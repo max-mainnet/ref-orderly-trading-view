@@ -23,6 +23,8 @@
     "near-api-js": "0.44.2",
     "postcss": "^8.4.20",
     "postcss-cli": "^9.1.0",
+    "mathjs": "^9.3.0",
+    "big.js": "^6.1.1",
     "postcss-preset-env": "^7.8.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -39,7 +41,8 @@
     "@types/elliptic": "^6.4.14",
     "@types/react-modal": "^3.12.0",
     "buffer": "^5.5.0",
-    "process": "0.11.10"
+    "process": "0.11.10",
+    "@types/big.js": "^6.1.2"
   },
   "scripts": {
     "start:testnet": "REACT_APP_NEAR_ENV=testnet NEAR_ENV=testnet react-scripts start",
