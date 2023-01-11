@@ -118,6 +118,8 @@ export const createOrder = async (props: { accountId: string; orderlyProps: Orde
   const message = formateParams(props.orderlyProps);
 
   const signature = generateOrderSignature(accountId, message);
+  console.log('accountId: ', accountId);
+  console.log('signature: ', signature);
 
   const body = {
     symbol,

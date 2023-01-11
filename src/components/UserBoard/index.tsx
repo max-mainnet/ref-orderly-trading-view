@@ -49,9 +49,12 @@ Modal.defaultStyles = {
 
 const symbolsArr = ['e', 'E', '+', '-'];
 
+export function TextWrapper({ value, bg, textC }: { value: string; bg?: string; textC?: string }) {
+  return <span className={`px-1.5  pb-1 rounded-md ${bg || 'bg-primary '} bg-opacity-10 ${textC || 'text-white'}`}>{value}</span>;
+}
+
 function UserBoard() {
   const { symbol, setSymbol, tokenInfo, ticker, marketTrade, markPrices, balances } = useOrderlyContext();
-  console.log('tokenInfo: ', tokenInfo);
 
   const { accountId, modal, selector } = useWalletSelector();
 
@@ -79,10 +82,14 @@ function UserBoard() {
 
   const [userInfo, setUserInfo] = useState<ClientInfo>();
 
+  const [confirmModalOpen, setConfirmModalOpen] = useState<boolean>(false);
+
   const handleSignOut = async () => {
     const wallet = await selector.wallet();
     return wallet.signOut();
   };
+
+  const submitDisable = !inputValue || Number(inputValue) === 0 || (orderType === 'Limit' && Number(limitPrice) <= 0) || !userInfo;
 
   const inputLimitPriceRef = useRef<HTMLInputElement>(null);
 
@@ -158,7 +165,7 @@ function UserBoard() {
           side: side,
           symbol: symbol,
           order_type: 'MARKET',
-          order_quantity: Number(inputValue),
+          order_quantity: inputValue,
         },
       });
     } else if (orderType === 'Limit') {
@@ -167,9 +174,9 @@ function UserBoard() {
         orderlyProps: {
           side: side,
           symbol: symbol,
-          order_price: Number(limitPrice),
+          order_price: limitPrice,
           order_type: 'LIMIT',
-          order_quantity: Number(inputValue),
+          order_quantity: inputValue,
         },
       });
     }
@@ -393,12 +400,15 @@ function UserBoard() {
       <button
         className={`rounded-lg ${
           side === 'BUY' ? 'bg-buyGradientGreen' : 'bg-sellGradientRed'
-        } text-white py-2.5 mt-4 flex items-center justify-center text-base `}
+        } text-white py-2.5 mt-4 flex items-center justify-center text-base ${submitDisable ? 'opacity-60 cursor-not-allowed' : ''} `}
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          handleSubmit();
+          // handleSubmit();
+          setConfirmModalOpen(true);
         }}
+        disabled={submitDisable}
+        type='button'
       >
         {side === 'BUY' ? `Buy` : 'Sell'}
         {` ${symbolFrom}`}
@@ -431,6 +441,21 @@ function UserBoard() {
         tokenId={idFrom}
         accountBalance={tokenInHolding || 0}
       />
+
+      <ConfirmOrderModal
+        isOpen={confirmModalOpen}
+        onRequestClose={() => {
+          setConfirmModalOpen(false);
+        }}
+        symbolFrom={symbolFrom}
+        symbolTo={symbolTo}
+        side={side === 'BUY' ? 'Buy' : 'Sell'}
+        quantity={inputValue}
+        price={orderType === 'Limit' ? limitPrice : markPriceSymbol?.price.toString() || '0'}
+        fee={fee}
+        totalCost={total}
+        onClick={handleSubmit}
+      ></ConfirmOrderModal>
     </div>
   );
 }
@@ -639,6 +664,103 @@ function AssetManagerModal(
             disabled={!validation()}
           >
             {type === 'deposit' ? 'Deposit' : type === 'withdraw' ? 'Withdraw' : ''}
+          </button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+function ConfirmOrderModal(
+  props: Modal.Props & {
+    symbolFrom: string;
+    symbolTo: string;
+    side: 'Buy' | 'Sell';
+    quantity: string;
+    price: string;
+    fee: '-' | number;
+    totalCost: number | '-';
+    onClick: () => void;
+  }
+) {
+  const { onRequestClose, symbolFrom, symbolTo, side, quantity, price, fee, totalCost, onClick } = props;
+
+  return (
+    <Modal {...props}>
+      <div className=' rounded-2xl lg:w-80 xs:w-95vw gradientBorderWrapperNoShadow bg-boxBorder text-sm text-primary border '>
+        <div className='px-5 py-6 flex flex-col '>
+          <div className='flex items-center pb-6 justify-between'>
+            <span className='text-white text-lg font-bold'>Confirm Order</span>
+
+            <span
+              className='cursor-pointer '
+              onClick={(e: any) => {
+                onRequestClose && onRequestClose(e);
+              }}
+            >
+              <IoClose size={20} />
+            </span>
+          </div>
+
+          <div className='flex items-center mb-5 justify-between'>
+            <span>Limit Order</span>
+
+            <span className='flex'>
+              <TextWrapper
+                textC={side === 'Buy' ? 'text-buyGreen' : 'text-sellRed'}
+                bg={side === 'Buy' ? 'bg-buyGreen' : 'bg-sellRed'}
+                value={side}
+              ></TextWrapper>
+            </span>
+          </div>
+
+          <div className='flex items-center mb-5 justify-between'>
+            <span>Qty.</span>
+
+            <span className='flex'>
+              <span className='text-white mr-2'>{quantity}</span>
+
+              <TextWrapper value={symbolFrom}></TextWrapper>
+            </span>
+          </div>
+
+          <div className='flex items-center mb-5 justify-between'>
+            <span>Price</span>
+
+            <span className='flex'>
+              <span className='text-white mr-2'>{price}</span>
+              <TextWrapper value={`${symbolTo}/${symbolFrom}`}></TextWrapper>
+            </span>
+          </div>
+
+          <div className='flex items-center mb-5 justify-between'>
+            <span>Fee</span>
+
+            <span className='flex'>
+              <span className='text-white mr-2'>{fee}</span>
+              <TextWrapper value={`${symbolTo}`}></TextWrapper>
+            </span>
+          </div>
+
+          <div className='flex items-center mb-5 justify-between'>
+            <span className=''>Total cost</span>
+
+            <span className='flex '>
+              <span className='text-white mr-2'>{totalCost}</span>
+              <TextWrapper value={`${symbolTo}`}></TextWrapper>
+            </span>
+          </div>
+
+          <button
+            className='rounded-lg flex items-center justify-center py-3 bg-greenPurpleGradient text-base text-white font-bold'
+            onClick={(e: any) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onClick();
+              onRequestClose && onRequestClose(e);
+            }}
+          >
+            Confirm
           </button>
         </div>
       </div>

@@ -35,7 +35,7 @@ module.exports = {
         orderGraidentHover: 'linear-gradient(180deg, #62798A 0%, #334B5E 100%)',
         grayBoderGradient: 'linear-gradient(180deg, rgba(126, 138, 147, 0.2) 0%, rgba(3, 5, 5, 0.2) 100%)',
         grayBoderGradientReverse: 'linear-gradient(0deg, rgba(126, 138, 147, 0.2) 0%, rgba(3, 5, 5, 0.2) 100%)',
-
+        greenPurpleGradient: 'linear-gradient(270deg, #7F43FF 0%, #00C6A2 97.06%)',
         darkGradientHoverBg: 'linear-gradient(180deg, #24313A 0%, #14212B 100%)',
         switchButtonGradientBg: 'linear-gradient(90deg, #00C6A2 24.14%, #008B72 72.41%)',
         unLockedbg: 'linear-gradient(180deg, #FFB36D 0%, #D27E00 100%)',

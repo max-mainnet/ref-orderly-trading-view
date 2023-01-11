@@ -111,6 +111,7 @@ export const generateRequestSignatureHeader = async ({
 
 export const generateOrderSignature = (accountId: string, message: string) => {
   const msgHash = new Buffer(keccak256(message)).toString('hex');
+  console.log('msgHash: ', msgHash);
 
   const priKey = localStorage.getItem(get_orderly_private_key_path(accountId));
 
@@ -126,8 +127,17 @@ export const generateOrderSignature = (accountId: string, message: string) => {
   // console.log(pubKey, keyPair.getPublic().encode('hex', false));
 
   const signature = keyPair.sign(msgHash, 'hex', { canonical: true });
+  console.log(
+    'signature: ',
+    signature.r.toString('hex'),
+    signature.r.toString('hex').length,
 
-  const finalSignature = signature.r.toString('hex') + signature.s.toString('hex') + '0' + signature.recoveryParam;
+    signature.s.toString('hex'),
+    signature.s.toString('hex').length,
+    signature.recoveryParam
+  );
+
+  const finalSignature = signature.r.toString('hex', 64) + signature.s.toString('hex', 64) + '0' + signature.recoveryParam;
 
   return finalSignature;
 };
