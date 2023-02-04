@@ -1,6 +1,12 @@
 import { getOrderlyConfig } from '../config';
-import { getPublicKey, generateRequestSignatureHeader, get_orderly_private_key_path, get_orderly_public_key_path } from './utils';
-import { OrderlyOrder, EditOrderlyOrder, ClientInfo } from './type';
+import {
+  getPublicKey,
+  generateRequestSignatureHeader,
+  get_orderly_private_key_path,
+  get_orderly_public_key_path,
+  formateParamsNoSorting,
+} from './utils';
+import { OrderlyOrder, EditOrderlyOrder, ClientInfo, orderStatus } from './type';
 import { get_user_trading_key } from './on-chain-api';
 import { ec } from 'elliptic';
 import { generateOrderSignature, OFF_CHAIN_METHOD, formateParams } from './utils';
@@ -45,24 +51,36 @@ export const getOrderlyHeaders = async ({
   return headers;
 };
 
-export const requestOrderly = async ({ url, accountId, param }: { url?: string; accountId: string; param?: object }) => {
+export const requestOrderly = async ({ ct, url, accountId, param }: { url?: string; accountId: string; param?: object; ct?: string }) => {
   const headers = await getOrderlyHeaders({
     url,
     accountId,
     trading: false,
     method: 'GET',
     param,
+    contentType: ct,
   });
 
   return await fetch(`${getOrderlyConfig().OFF_CHAIN_END_POINT}${url || ''}`, {
     method: 'GET',
+
     headers,
   }).then((res) => {
     return res.json();
   });
 };
 
-export const tradingOrderly = async ({ url, accountId, body, method }: { url?: string; accountId: string; body: object; method?: 'POST' | 'PUT' }) => {
+export const tradingOrderly = async ({
+  url,
+  accountId,
+  body,
+  method,
+}: {
+  url?: string;
+  accountId: string;
+  body: object;
+  method?: 'POST' | 'PUT';
+}) => {
   const headers = await getOrderlyHeaders({
     url,
     accountId,
@@ -118,8 +136,6 @@ export const createOrder = async (props: { accountId: string; orderlyProps: Orde
   const message = formateParams(props.orderlyProps);
 
   const signature = generateOrderSignature(accountId, message);
-  console.log('accountId: ', accountId);
-  console.log('signature: ', signature);
 
   const body = {
     symbol,
@@ -185,6 +201,31 @@ export const getAssetHistory = async (props: {
   return res;
 };
 
+export const getOpenOrders = async (props: {
+  accountId: string;
+  // OrderProps?: {
+  //   symbol?: string;
+  //   side?: 'BUY' | 'SELL';
+  //   order_type?: 'LIMIT' | 'MARKET';
+  //   order_tag?: string;
+  //   status?: 'NEW' | 'CANCELLED' | 'REJECTED' | 'COMPLETED' | 'FILLED' | 'PARTIAL_FILLED' | 'INCOMPLETE';
+  //   start_t?: number;
+  //   end_t?: number;
+  //   page?: number;
+  //   size?: number;
+  // };
+}) => {
+  const url = `/orderservice/v1/merge/orders/pending`;
+
+  const res = requestOrderly({
+    url,
+    accountId: props.accountId,
+    ct: 'application/json;charset=utf-8',
+  });
+
+  return res;
+};
+
 export const getOrders = async (props: {
   accountId: string;
   OrderProps?: {
@@ -192,22 +233,80 @@ export const getOrders = async (props: {
     side?: 'BUY' | 'SELL';
     order_type?: 'LIMIT' | 'MARKET';
     order_tag?: string;
-    status?: 'NEW' | 'CONFIRM' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
+    status?: orderStatus;
     start_t?: number;
     end_t?: number;
     page?: number;
     size?: number;
   };
 }) => {
-  const url = '/v1/orders';
+  const url = `/v1/orders?${formateParams(props.OrderProps || {})}`;
 
   const res = requestOrderly({
     url,
     accountId: props.accountId,
-    param: props.OrderProps,
+    ct: 'application/json;charset=utf-8',
   });
 
   return res;
+};
+
+export const getAllOrders = async (props: {
+  accountId: string;
+  OrderProps?: {
+    symbol?: string;
+    // side?: 'BUY' | 'SELL';
+    // order_type?: 'LIMIT' | 'MARKET';
+    // order_tag?: string;
+    // status?: 'NEW' | 'CANCELLED' | 'REJECTED' | 'COMPLETED' | 'FILLED' | 'PARTIAL_FILLED' | 'INCOMPLETE';
+    // start_t?: number;
+    // end_t?: number;
+    page?: number;
+    size?: number;
+  };
+}) => {
+  const pageOne = await getOrders({
+    accountId: props.accountId,
+    OrderProps: {
+      ...props.OrderProps,
+      page: 1,
+      size: 500,
+    },
+  });
+
+  console.log('pageOne: ', pageOne);
+
+  const total = pageOne.data.meta.total;
+  console.log('total: ', total);
+
+  const pageSize = Math.ceil(total / 500);
+
+  const pages = Array.from({ length: pageSize }, (v, k) => k + 1);
+
+  pages.shift();
+  console.log('pages: ', pages);
+
+  const leftOrders = await Promise.all(
+    pages.map(async (page) => {
+      const res = await getOrders({
+        accountId: props.accountId,
+        OrderProps: {
+          ...props.OrderProps,
+          page,
+          size: 500,
+        },
+      });
+
+      return res.data.rows;
+    })
+  );
+
+  console.log('rows', pageOne.data.rows);
+
+  const allOrders = pageOne.data.rows.concat(...leftOrders);
+  console.log('allOrders: ', allOrders);
+
+  return allOrders;
 };
 
 export const getOrderByClientId = async (props: { accountId: string; client_order_id: string }) => {
@@ -326,7 +425,8 @@ export const cancelOrderByClientId = async (props: {
 export const editOrder = async (props: { accountId: string; orderlyProps: EditOrderlyOrder }) => {
   const { accountId } = props;
 
-  const { symbol, client_order_id, order_type, order_price, order_quantity, order_amount, side, broker_id, visible_quantity, order_id } = props.orderlyProps;
+  const { symbol, client_order_id, order_type, order_price, order_quantity, order_amount, side, broker_id, visible_quantity, order_id } =
+    props.orderlyProps;
 
   const message = formateParams(props.orderlyProps);
 

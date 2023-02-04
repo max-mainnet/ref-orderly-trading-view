@@ -13,16 +13,20 @@ import {
 } from '../../near';
 import { useWalletSelector } from '../../WalletSelectorContext';
 import { depositFT, depositOrderly, registerOrderly, storageDeposit, withdrawOrderly } from '../../orderly/api';
-import { getAccountInformation, getCurrentHolding, createOrder } from '../../orderly/off-chain-api';
-import { Holding, ClientInfo, TokenInfo } from '../../orderly/type';
+import { getAccountInformation, getCurrentHolding, createOrder, getOrderByOrderId } from '../../orderly/off-chain-api';
+import { Holding, ClientInfo, TokenInfo, TokenMetadata } from '../../orderly/type';
 import { BuyButton, SellButton } from './Button';
 import './index.css';
 import { FaMinus, FaPlus } from 'react-icons/fa';
 import Modal from 'react-modal';
 import Big from 'big.js';
 import { IoClose } from 'react-icons/io5';
+
+import { IoIosArrowForward, IoIosArrowDown, IoIosArrowUp } from 'react-icons/io';
 import { toReadableNumber } from '../../orderly/utils';
 import { user_request_withdraw } from '../../orderly/on-chain-api';
+import { CheckBox, ConnectWallet, TipWrapper } from '../Common';
+import { orderPopUp } from '../Common/index';
 
 Modal.defaultStyles = {
   overlay: {
@@ -49,20 +53,24 @@ Modal.defaultStyles = {
 
 const symbolsArr = ['e', 'E', '+', '-'];
 
-export function TextWrapper({ value, bg, textC }: { value: string; bg?: string; textC?: string }) {
-  return <span className={`px-1.5  pb-1 rounded-md ${bg || 'bg-primary '} bg-opacity-10 ${textC || 'text-white'}`}>{value}</span>;
+export function TextWrapper({ className, value, bg, textC }: { value: string; bg?: string; textC?: string; className?: string }) {
+  return <span className={`${className} px-1.5  py-0.5 rounded-md ${bg || 'bg-primary '} bg-opacity-10 ${textC || 'text-white'} `}>{value}</span>;
 }
 
 function UserBoard() {
-  const { symbol, setSymbol, tokenInfo, ticker, marketTrade, markPrices, balances } = useOrderlyContext();
+  const { symbol, setSymbol, tokenInfo, ticker, marketTrade, markPrices, balances, handlePendingOrderRefreshing } = useOrderlyContext();
 
   const { accountId, modal, selector } = useWalletSelector();
+
+  const [showLimitAdvance, setShowLimitAdvance] = useState<boolean>(false);
+
+  const [advanceLimitMode, setAdvanceLimitMode] = useState<'IOC' | 'FOK' | 'POST_ONLY'>();
 
   const [operationType, setOperationType] = useState<'deposit' | 'withdraw'>();
 
   const { symbolFrom, symbolTo } = parseSymbol(symbol);
 
-  const [side, setSide] = useState<'BUY' | 'SELL'>('BUY');
+  const [side, setSide] = useState<'Buy' | 'Sell'>('Buy');
 
   const [orderType, setOrderType] = useState<'Market' | 'Limit'>('Limit');
 
@@ -71,6 +79,8 @@ function UserBoard() {
   const idFrom = tokenInfo && tokenInfo.find((t) => t.token === symbolFrom)?.token_account_id;
 
   const idTo = tokenInfo && tokenInfo.find((t) => t.token === symbolTo)?.token_account_id;
+
+  const [operationId, setOperationId] = useState<string>(idFrom || '');
 
   const [iconIn, setIconIn] = useState<string>();
 
@@ -95,6 +105,8 @@ function UserBoard() {
 
   const inputAmountRef = useRef<HTMLInputElement>(null);
 
+  const [tokenIn, setTokenIn] = useState<TokenMetadata>();
+
   useEffect(() => {
     if (!accountId) return;
 
@@ -115,6 +127,7 @@ function UserBoard() {
       setIconIn(nearMetadata.icon);
     } else {
       getFTmetadata(idFrom).then((res) => {
+        setTokenIn(res);
         setIconIn(res.icon);
       });
     }
@@ -162,45 +175,73 @@ function UserBoard() {
       createOrder({
         accountId,
         orderlyProps: {
-          side: side,
+          side: side === 'Buy' ? 'BUY' : 'SELL',
           symbol: symbol,
           order_type: 'MARKET',
           order_quantity: inputValue,
         },
+      }).then(async (res) => {
+        if (res.success === false) return;
+
+        handlePendingOrderRefreshing();
+
+        return orderPopUp({
+          orderType: 'Market',
+          symbolName: symbol,
+          side: side,
+          size: inputValue,
+          tokenIn: tokenIn,
+          price: markPriceSymbol?.price?.toString() || '',
+        });
       });
     } else if (orderType === 'Limit') {
       createOrder({
         accountId,
         orderlyProps: {
-          side: side,
+          side: side === 'Buy' ? 'BUY' : 'SELL',
           symbol: symbol,
           order_price: limitPrice,
-          order_type: 'LIMIT',
+          order_type: typeof advanceLimitMode !== 'undefined' ? advanceLimitMode : 'LIMIT',
           order_quantity: inputValue,
         },
+      }).then((res) => {
+        if (res.success === false) return;
+
+        handlePendingOrderRefreshing();
+
+        return orderPopUp({
+          orderType: 'Limit',
+          symbolName: symbol,
+          side: side,
+          size: inputValue,
+          tokenIn: tokenIn,
+          price: limitPrice || '',
+        });
       });
     }
   };
 
-  return (
-    <div className='w-full p-6 flex flex-col bg-black bg-opacity-10'>
-      <button
-        className='text-center text-white'
-        onClick={() => {
-          setOperationType('deposit');
-        }}
-      >
-        deposit
-      </button>
+  const isInsufficientBalance = new Big(total === '-' ? '0' : total).gt(tokenOutHolding || '0');
 
-      <button
-        className='text-center text-white'
-        onClick={() => {
-          setOperationType('withdraw');
-        }}
-      >
-        withdraw
-      </button>
+  return (
+    <div className='w-full p-6 relative flex flex-col  border-t border-l border-b h-screen border-boxBorder  bg-black bg-opacity-10'>
+      {/* not signed in wrapper */}
+      {!accountId && (
+        <div
+          className='absolute  flex flex-col items-center h-full w-full top-0 left-0 z-50 '
+          style={{
+            background: 'rgba(0, 19, 32, 0.8)',
+            backdropFilter: 'blur(5px)',
+          }}
+        >
+          <ConnectWallet
+            onClick={() => {
+              modal.show();
+            }}
+          ></ConnectWallet>
+        </div>
+      )}
+
       <button
         onClick={() => {
           return accountId ? handleSignOut() : modal.show();
@@ -232,7 +273,7 @@ function UserBoard() {
         register orderly
       </button>
 
-      <div className='text-sm text-white mb-4 text-left'>Balance</div>
+      <div className='text-sm text-white font-bold mb-4 text-left'>Balance</div>
 
       <div className='flex items-center mb-5 text-white text-sm justify-between'>
         <div className='flex items-center'>
@@ -242,7 +283,15 @@ function UserBoard() {
 
         <div className='flex items-center'>
           <span>{tokenInHolding ? tokenInHolding.toFixed(2) : null}</span>
-          <span className='text-primary text-xs ml-2.5'>Deposit</span>
+          <span
+            className='text-primary text-xs ml-2.5 p-1 hover:text-baseGreen hover:bg-symbolHover rounded cursor-pointer'
+            onClick={() => {
+              setOperationType('deposit');
+              setOperationId(idFrom || '');
+            }}
+          >
+            Deposit
+          </span>
         </div>
       </div>
 
@@ -254,7 +303,15 @@ function UserBoard() {
 
         <div className='flex items-center'>
           <span>{tokenOutHolding ? tokenOutHolding.toFixed(2) : null}</span>
-          <span className='text-primary text-xs ml-2.5'>Deposit</span>
+          <span
+            onClick={() => {
+              setOperationType('deposit');
+              setOperationId(idTo || '');
+            }}
+            className='text-primary text-xs ml-2.5 p-1 hover:text-baseGreen hover:bg-symbolHover rounded cursor-pointer'
+          >
+            Deposit
+          </span>
         </div>
       </div>
 
@@ -262,16 +319,16 @@ function UserBoard() {
       <div className='flex items-center justify-center mt-7'>
         <BuyButton
           onClick={() => {
-            setSide('BUY');
+            setSide('Buy');
           }}
-          select={side === 'BUY'}
+          select={side === 'Buy'}
         />
 
         <SellButton
           onClick={() => {
-            setSide('SELL');
+            setSide('Sell');
           }}
-          select={side === 'SELL'}
+          select={side === 'Sell'}
         />
       </div>
 
@@ -281,7 +338,9 @@ function UserBoard() {
 
         <div className='flex items-center'>
           <button
-            className={`flex px-4 py-2 mr-2 rounded-lg items-center justify-center ${orderType === 'Limit' ? 'bg-buyGradientGreen' : 'bg-orderTypeBg'}`}
+            className={`flex px-4 py-2 mr-2 rounded-lg items-center justify-center ${
+              orderType === 'Limit' ? 'bg-buyGradientGreen' : 'bg-orderTypeBg'
+            }`}
             onClick={() => {
               setOrderType('Limit');
             }}
@@ -308,7 +367,7 @@ function UserBoard() {
 
       {/* input box */}
       <div className='w-full text-primary mt-6 bg-black text-sm bg-opacity-10 rounded-xl border border-boxBorder p-3'>
-        <div className='mb-2 text-left'>{side === 'BUY' ? 'Size(Amount to buy)' : 'Size(Amount to sell)'}</div>
+        <div className='mb-2 text-left'>{side === 'Buy' ? 'Size(Amount to buy)' : 'Size(Amount to sell)'}</div>
 
         <div className='flex items-center mt-2'>
           <input
@@ -334,7 +393,7 @@ function UserBoard() {
       {orderType === 'Limit' && (
         <div className='w-full text-primary mt-3 text-sm bg-black bg-opacity-10 rounded-xl border border-boxBorder p-3'>
           <div className='flex items-center justify-between'>
-            <span>{side === 'BUY' ? 'Buy Price' : 'Sell Price'}</span>
+            <span>{side === 'Buy' ? 'Buy Price' : 'Sell Price'}</span>
 
             <span>{symbolTo}</span>
           </div>
@@ -375,13 +434,122 @@ function UserBoard() {
       )}
       {orderType === 'Market' && (
         <div className='w-full rounded-xl border border-boxBorder p-3 mt-3 text-sm flex items-center justify-between'>
-          <span className='text-primary'>{side === 'BUY' ? 'Buy Price' : 'Sell Price'}</span>
+          <span className='text-primary'>{side === 'Buy' ? 'Buy Price' : 'Sell Price'}</span>
 
           <span className='text-white'>Market price</span>
         </div>
       )}
 
-      <div className='mt-6 text-sm'>
+      {/* limit order advance mode */}
+
+      {orderType === 'Limit' && (
+        <div className='text-white text-sm mt-2'>
+          <div className='flex items-center justify-between'>
+            <span className='text-primary'>Advance</span>
+
+            <span
+              className={`${showLimitAdvance ? 'text-white' : 'text-primary'} cursor-pointer `}
+              onClick={() => {
+                setShowLimitAdvance(!showLimitAdvance);
+              }}
+            >
+              {showLimitAdvance ? <IoIosArrowUp /> : <IoIosArrowDown />}
+            </span>
+          </div>
+
+          <div className={`flex mt-2 items-center justify-between ${showLimitAdvance ? '' : 'hidden'}`}>
+            <div className='flex items-center'>
+              <CheckBox
+                check={advanceLimitMode === 'IOC'}
+                setCheck={() => {
+                  if (advanceLimitMode === 'IOC') {
+                    setAdvanceLimitMode(undefined);
+                  } else {
+                    setAdvanceLimitMode('IOC');
+                  }
+                }}
+              ></CheckBox>
+              <span
+                className='mx-2 cursor-pointer'
+                onClick={() => {
+                  if (advanceLimitMode === 'IOC') {
+                    setAdvanceLimitMode(undefined);
+                  } else {
+                    setAdvanceLimitMode('IOC');
+                  }
+                }}
+              >
+                IOC
+              </span>
+
+              <TipWrapper
+                id='user_board_ioc'
+                tipText='Immediate-Or-Cancel is an order to buy or sell that must be filled immediately. Any portion of an IOC order that cannot be filled will be cancelled.'
+              />
+            </div>
+            <div className='flex items-center'>
+              <CheckBox
+                check={advanceLimitMode === 'FOK'}
+                setCheck={() => {
+                  if (advanceLimitMode === 'FOK') {
+                    setAdvanceLimitMode(undefined);
+                  } else {
+                    setAdvanceLimitMode('FOK');
+                  }
+                }}
+              ></CheckBox>
+              <span
+                className='cursor-pointer mx-2'
+                onClick={() => {
+                  if (advanceLimitMode === 'FOK') {
+                    setAdvanceLimitMode(undefined);
+                  } else {
+                    setAdvanceLimitMode('FOK');
+                  }
+                }}
+              >
+                FOK
+              </span>
+
+              <TipWrapper
+                id='user_board_folk'
+                tipText='Fill-Or-Kill is an order to buy or sell that must be executed immediately in its entirety; otherwise, the entire order will be cancelled.'
+              />
+            </div>
+            <div className='flex items-center'>
+              <CheckBox
+                check={advanceLimitMode === 'POST_ONLY'}
+                setCheck={() => {
+                  if (advanceLimitMode === 'POST_ONLY') {
+                    setAdvanceLimitMode(undefined);
+                  } else {
+                    setAdvanceLimitMode('POST_ONLY');
+                  }
+                }}
+              ></CheckBox>
+              <span
+                className='mx-2 cursor-pointer'
+                onClick={() => {
+                  if (advanceLimitMode === 'POST_ONLY') {
+                    setAdvanceLimitMode(undefined);
+                  } else {
+                    setAdvanceLimitMode('POST_ONLY');
+                  }
+                }}
+              >
+                Post-only
+              </span>
+
+              <TipWrapper
+                id='user_board_post_only'
+                tipText='Post Only ensures that traders can only place an order if it would be posted to the orderbook as a Maker order. An order which would be posted as a Taker order will be cancelled.'
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className='mt-6 bg-feeColor rounded-lg text-sm px-2 pt-3 relative z-10 pb-6'>
         <div className='flex items-center justify-between'>
           <span className='text-primary'>Fee </span>
           <span className='text-white'>
@@ -389,7 +557,7 @@ function UserBoard() {
           </span>
         </div>
 
-        <div className='flex items-center mt-4 justify-between'>
+        <div className='flex items-center mt-2 justify-between'>
           <span className='text-primary'>Total </span>
           <span className='text-white'>
             {total === '-' ? '-' : total.toFixed(4)} {` ${symbolTo}`}
@@ -398,20 +566,20 @@ function UserBoard() {
       </div>
 
       <button
-        className={`rounded-lg ${
-          side === 'BUY' ? 'bg-buyGradientGreen' : 'bg-sellGradientRed'
-        } text-white py-2.5 mt-4 flex items-center justify-center text-base ${submitDisable ? 'opacity-60 cursor-not-allowed' : ''} `}
+        className={`rounded-lg ${isInsufficientBalance ? 'bg-borderC' : side === 'Buy' ? 'bg-buyGradientGreen' : 'bg-sellGradientRed'} ${
+          isInsufficientBalance ? 'text-primary cursor-not-allowed' : 'text-white'
+        }  py-2.5 relative bottom-3  flex z-20 items-center justify-center text-base ${submitDisable ? 'opacity-60 cursor-not-allowed' : ''} `}
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
           // handleSubmit();
           setConfirmModalOpen(true);
         }}
-        disabled={submitDisable}
+        disabled={submitDisable || isInsufficientBalance}
         type='button'
       >
-        {side === 'BUY' ? `Buy` : 'Sell'}
-        {` ${symbolFrom}`}
+        {isInsufficientBalance ? 'Insufficient Balance' : side}
+        {` ${isInsufficientBalance ? '' : symbolFrom}`}
       </button>
 
       <AssetManagerModal
@@ -421,10 +589,10 @@ function UserBoard() {
         }}
         type={operationType}
         onClick={(amount: string) => {
-          if (!idFrom) return;
-          return depositOrderly(idFrom, amount);
+          if (!operationId) return;
+          return depositOrderly(operationId, amount);
         }}
-        tokenId={idFrom}
+        tokenId={operationId}
         accountBalance={tokenInHolding || 0}
       />
 
@@ -435,10 +603,10 @@ function UserBoard() {
         }}
         type={operationType}
         onClick={(amount: string) => {
-          if (!idFrom) return;
-          return withdrawOrderly(idFrom, amount);
+          if (!operationId) return;
+          return withdrawOrderly(operationId, amount);
         }}
-        tokenId={idFrom}
+        tokenId={operationId}
         accountBalance={tokenInHolding || 0}
       />
 
@@ -449,7 +617,7 @@ function UserBoard() {
         }}
         symbolFrom={symbolFrom}
         symbolTo={symbolTo}
-        side={side === 'BUY' ? 'Buy' : 'Sell'}
+        side={side}
         quantity={inputValue}
         price={orderType === 'Limit' ? limitPrice : markPriceSymbol?.price.toString() || '0'}
         fee={fee}
@@ -466,6 +634,7 @@ function AssetManagerModal(
     onClick: (amount: string) => void;
     tokenId: string | undefined;
     accountBalance: number;
+    standAlone?: boolean;
   }
 ) {
   const { onClick, isOpen, onRequestClose, type, tokenId, accountBalance } = props;
@@ -503,7 +672,11 @@ function AssetManagerModal(
   const setAmountByShareFromBar = (sharePercent: string) => {
     setPercentage(sharePercent);
 
-    const sharePercentOfValue = percentOfBigNumber(Number(sharePercent), type === 'deposit' ? walletBalance : accountBalance.toString(), tokenMeta.decimals);
+    const sharePercentOfValue = percentOfBigNumber(
+      Number(sharePercent),
+      type === 'deposit' ? walletBalance : accountBalance.toString(),
+      tokenMeta.decimals
+    );
 
     setInputValue(sharePercentOfValue);
   };
@@ -654,7 +827,9 @@ function AssetManagerModal(
           <button
             className={`flex ${
               !validation() ? 'opacity-70 cursor-not-allowed' : ''
-            } items-center justify-center  font-bold text-base text-white py-2.5 rounded-lg ${type === 'deposit' ? 'bg-primaryGradient' : 'bg-withdrawPurple'}`}
+            } items-center justify-center  font-bold text-base text-white py-2.5 rounded-lg ${
+              type === 'deposit' ? 'bg-primaryGradient' : 'bg-withdrawPurple'
+            }`}
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();

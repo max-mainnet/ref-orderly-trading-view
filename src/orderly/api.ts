@@ -1,9 +1,6 @@
 import {
   get_storage_deposit_amount,
   orderly_storage_deposit,
-  user_account_exists,
-  user_announce_key,
-  user_request_set_trading_key,
   user_deposit_native_token,
   deposit_exact_token,
   user_request_withdraw,
@@ -11,14 +8,10 @@ import {
 import { Transaction as WSTransaction } from '@near-wallet-selector/core';
 import { find_orderly_functionCall_key, getNormalizeTradingKey, toNonDivisibleNumber } from './utils';
 import { getAddFunctionCallKeyTransaction, ORDERLY_ASSET_MANAGER } from '../near';
-import { KeyPair } from 'near-api-js';
 import { Transaction, getFunctionCallTransaction, near, getGas, getAmount } from '../near';
 
-import { functionCall } from 'near-api-js/lib/transaction';
 import { REGISTER_DEPOSIT_AMOUNT } from './on-chain-api';
 import { getFTmetadata } from '../near';
-import { formatNearAmount, parseNearAmount } from 'near-api-js/lib/utils/format';
-import BN from 'bn.js';
 
 const signAndSendTransactions = async (transactions: Transaction[]) => {
   const wsTransactions = await getFunctionCallTransaction(transactions);

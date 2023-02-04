@@ -1,3 +1,5 @@
+export type orderStatus = 'NEW' | 'CANCELLED' | 'REJECTED' | 'COMPLETED' | 'FILLED' | 'PARTIAL_FILLED' | 'INCOMPLETE';
+
 export interface OrderlyOrder {
   symbol: string;
   client_order_id?: string;
@@ -8,6 +10,27 @@ export interface OrderlyOrder {
   side: 'BUY' | 'SELL';
   broker_id?: string;
   visible_quantity?: number;
+}
+
+export interface MyOrder {
+  order_id: number;
+  user_id: number;
+  price: number;
+  type: 'LIMIT' | 'MARKET';
+  quantity: number;
+  amount?: any;
+  executed: number;
+  visible: number;
+  symbol: string;
+  side: 'BUY' | 'SELL';
+  status: orderStatus;
+  total_fee: number;
+  fee_asset: string;
+  client_order_id?: any;
+  average_executed_price: number;
+  broker_id: string;
+  created_time: number;
+  updated_time: number;
 }
 
 export interface EditOrderlyOrder extends OrderlyOrder {
@@ -33,6 +56,7 @@ export interface MarketTrade {
   price: number;
   size: number;
   side: 'BUY' | 'SELL';
+  ts: number;
 }
 
 export interface Trade {
@@ -41,6 +65,14 @@ export interface Trade {
   executed_price: number;
   executed_quantity: number;
   executed_timestamp: number;
+}
+
+export interface TokenMetadata {
+  id: string;
+  name: string;
+  symbol: string;
+  decimals: number;
+  icon: string;
 }
 
 export interface Ticker {
@@ -52,6 +84,8 @@ export interface Ticker {
   volume: number;
   amount: number;
   count: number;
+  symbol_from_token_meta?: TokenMetadata;
+  symbol_to_token_meta?: TokenMetadata;
 }
 
 export interface TokenInfo {

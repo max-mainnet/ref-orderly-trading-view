@@ -136,9 +136,16 @@ export const getAddFunctionCallKeyTransaction = async ({ receiverId, publicKey }
 };
 
 export const getFTmetadata = async (token: string) => {
+  if (token === 'near') return nearMetadata;
+
   const account = await near.account(ORDERLY_ASSET_MANAGER);
 
-  return await account.viewFunction(token, 'ft_metadata');
+  const data = await account.viewFunction(token, 'ft_metadata');
+
+  return {
+    ...data,
+    id: token,
+  };
 };
 
 export const nearMetadata = {

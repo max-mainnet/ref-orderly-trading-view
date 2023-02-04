@@ -25,14 +25,7 @@ function RecentTrade() {
   //   console.log('recentTrades: ', recentTrades);
 
   return (
-    <div
-      className='w-full border border-boxBorder text-sm rounded-2xl  bg-black bg-opacity-10 p-4 '
-      style={{
-        minWidth: '320px',
-      }}
-    >
-      <div className='text-white text-left mb-2'>Recent Trade</div>
-
+    <>
       <div className='flex mr-4 mb-1 items-center text-xs text-primary justify-between '>
         <div>
           <span>Price</span>
@@ -52,7 +45,7 @@ function RecentTrade() {
       <section
         className='overflow-auto text-xs'
         style={{
-          maxHeight: '300px',
+          height: '490px',
         }}
       >
         {recentTrades.map((trade, i) => {
@@ -66,7 +59,7 @@ function RecentTrade() {
           );
         })}
       </section>
-    </div>
+    </>
   );
 }
 

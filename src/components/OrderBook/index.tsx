@@ -1,5 +1,6 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { useOrderlyContext } from '../../orderly/OrderlyContext';
+import RecentTrade from '../RecentTrade';
 
 function parseSymbol(fullName: string) {
   return {
@@ -10,82 +11,106 @@ function parseSymbol(fullName: string) {
 
 function OrderBook() {
   const { orders, marketTrade, symbol } = useOrderlyContext();
-  console.log('orders: ', orders);
 
   const { symbolFrom, symbolTo } = parseSymbol(symbol);
+  const [tab, setTab] = useState<'recent' | 'book'>('book');
 
   return (
     <div
-      className='w-full  border border-boxBorder text-sm rounded-b-2xl bg-black bg-opacity-10 p-4 '
+      className='w-full  border border-boxBorder text-sm rounded-2xl bg-black bg-opacity-10 p-4 '
       style={{
-        minWidth: '320px',
+        height: '570px',
       }}
     >
-      <div className='text-white text-left mb-2'>Orderbook</div>
-
-      <div className='flex items-center text-xs mb-1 mr-4 text-primary justify-between '>
-        <div>
-          <span>Price</span>
-
-          <span className='text-white rounded-md ml-1 p-1 bg-primary bg-opacity-10'>{symbolTo}</span>
+      <div className='flex mb-2 border-b border-white border-opacity-10 items-center '>
+        <div
+          onClick={() => {
+            setTab('book');
+          }}
+          className={`cursor-pointer text-left ${tab === 'book' ? 'text-white' : 'text-primary'} font-bold mb-1`}
+        >
+          Orderbook
         </div>
-
-        <div>
-          <span>Size</span>
-
-          <span className='text-white rounded-md ml-1 p-1 bg-primary bg-opacity-10'>{symbolFrom}</span>
+        <div
+          onClick={() => {
+            setTab('recent');
+          }}
+          className={`cursor-pointer text-left ${tab === 'recent' ? 'text-white' : 'text-primary'} ml-3 font-bold mb-1`}
+        >
+          Recent Trade
         </div>
-
-        <div>Total</div>
       </div>
 
-      {/* sell  */}
-      <section
-        className='text-xs flex flex-col-reverse overflow-auto text-white '
-        id='sell-order-book-panel'
-        style={{
-          maxHeight: '140px',
-        }}
-      >
-        {orders?.asks.map((order, i) => {
-          return (
-            <div className='grid grid-cols-3 mr-2 mt-2.5 justify-items-end' key={'orderbook-ask-' + i}>
-              <span className='text-sellRed justify-self-start'>{order[0]}</span>
+      {tab === 'book' && (
+        <>
+          <div className='flex items-center text-xs mb-2 mr-4 text-primary justify-between '>
+            <div>
+              <span>Price</span>
 
-              <span className=''>{order[1]}</span>
-
-              <span>{(order[1] * order[0]).toFixed(2)}</span>
+              <span className='text-white rounded-md ml-1 p-1 bg-primary bg-opacity-10'>{symbolTo}</span>
             </div>
-          );
-        })}
-      </section>
 
-      {/* market trade */}
+            <div>
+              <span>Size</span>
 
-      <div className={`text-center flex items-center py-1 justify-center ${marketTrade?.side === 'BUY' ? 'text-buyGreen' : 'text-sellRed'} text-lg`}>
-        {marketTrade && marketTrade?.price}
-      </div>
-
-      {/* buy */}
-
-      <section
-        className='text-xs overflow-auto text-white'
-        style={{
-          maxHeight: '140px',
-        }}
-      >
-        {orders?.bids.map((order, i) => {
-          return (
-            <div className='grid grid-cols-3 mr-2 mb-2.5  justify-items-end' key={'orderbook-ask-' + i}>
-              <span className='text-buyGreen justify-self-start'>{order[0]}</span>
-
-              <span className=''>{order[1]}</span>
-
-              <span>{(order[1] * order[0]).toFixed(2)}</span>
+              <span className='text-white rounded-md ml-1 p-1 bg-primary bg-opacity-10'>{symbolFrom}</span>
             </div>
-          );
-        })}
-      </section>
+
+            <div>Total Size</div>
+          </div>
+
+          {/* sell  */}
+          <section
+            className='text-xs flex flex-col-reverse overflow-auto text-white '
+            id='sell-order-book-panel'
+            style={{
+              height: '225px',
+            }}
+          >
+            {orders?.asks.map((order, i) => {
+              return (
+                <div className='grid hover:bg-symbolHover grid-cols-3 mr-2 py-1 justify-items-end' key={'orderbook-ask-' + i}>
+                  <span className='text-sellRed justify-self-start'>{order[0]}</span>
+
+                  <span className=''>{order[1]}</span>
+
+                  <span>{(order[1] * order[0]).toFixed(2)}</span>
+                </div>
+              );
+            })}
+          </section>
+
+          {/* market trade */}
+
+          <div
+            className={`text-center flex items-center py-1 justify-center ${marketTrade?.side === 'BUY' ? 'text-buyGreen' : 'text-sellRed'} text-lg`}
+          >
+            {marketTrade && marketTrade?.price}
+          </div>
+
+          {/* buy */}
+
+          <section
+            className='text-xs overflow-auto text-white'
+            style={{
+              height: '225px',
+            }}
+          >
+            {orders?.bids.map((order, i) => {
+              return (
+                <div className='grid grid-cols-3 mr-2 py-1 hover:bg-symbolHover  justify-items-end' key={'orderbook-ask-' + i}>
+                  <span className='text-buyGreen justify-self-start'>{order[0]}</span>
+
+                  <span className=''>{order[1]}</span>
+
+                  <span>{(order[1] * order[0]).toFixed(2)}</span>
+                </div>
+              );
+            })}
+          </section>
+        </>
+      )}
+      {tab === 'recent' && <RecentTrade />}
     </div>
   );
 }

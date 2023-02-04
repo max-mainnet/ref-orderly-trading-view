@@ -6,6 +6,9 @@ import { useWalletSelector } from '../WalletSelectorContext';
 import { getPublicKey, generateRequestSignatureHeader, toNonDivisibleNumber } from './utils';
 import { NotSignInError } from './error';
 import { getOrderlyWss } from './constant';
+import { parseSymbol } from '../components/RecentTrade/index';
+import { useTokenInfo } from './state';
+import { getFTmetadata } from '../near';
 
 function useInterval(callback: Function, delay: number) {
   const latestCallback = useRef<Function>(() => {});
@@ -156,11 +159,13 @@ export const initDataFlow = ({ symbol }: { symbol: string }) => {
 const preSubScription = new Map<string, OrderlyWSConnection>();
 
 export const useOrderlyMarketData = ({ symbol }: { symbol: string }) => {
-  const { connectionStatus, messageHistory, lastMessage, lastJsonMessage, sendMessage } = useOrderlyWS();
+  const { lastJsonMessage, sendMessage } = useOrderlyWS();
 
   const [orders, setOrders] = useState<Orders>();
 
   const [ticker, setTicker] = useState<Ticker>();
+
+  const [allTickers, setAllTickers] = useState<Ticker[]>();
 
   const [marketTrade, setMarketTrade] = useState<MarketTrade>();
 
@@ -171,12 +176,6 @@ export const useOrderlyMarketData = ({ symbol }: { symbol: string }) => {
     const msgFlow = generateMarketDataFlow({
       symbol,
     });
-
-    // setPreSubScription(msgFlow);
-
-    // check symbol
-
-    // preSubScription.clear();
 
     msgFlow.forEach((msg) => {
       const id = msg.id;
@@ -257,12 +256,21 @@ export const useOrderlyMarketData = ({ symbol }: { symbol: string }) => {
     //  process trade
     if ((lastJsonMessage?.id && lastJsonMessage?.id.includes(`${symbol}@trade`)) || lastJsonMessage?.topic === `${symbol}@trade`) {
       if (lastJsonMessage?.event === 'request') {
-        setMarketTrade(lastJsonMessage.data[0]);
-      } else setMarketTrade(lastJsonMessage.data);
+        setMarketTrade({ ...lastJsonMessage.data[0], symbol });
+      } else
+        setMarketTrade({
+          ...lastJsonMessage.data,
+          symbol,
+        });
     }
 
     if (lastJsonMessage?.topic === 'tickers') {
       const tickers = lastJsonMessage.data;
+
+      console.log('tickers: ', tickers);
+      setAllTickers(tickers);
+
+      console.log('tickers: ', tickers);
 
       const ticker = tickers.find((t: Ticker) => t.symbol === symbol);
 
@@ -282,6 +290,7 @@ export const useOrderlyMarketData = ({ symbol }: { symbol: string }) => {
     orders,
     ticker,
     markPrices,
+    allTickers,
   };
 };
 
