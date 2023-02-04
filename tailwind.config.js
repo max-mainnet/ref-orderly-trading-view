@@ -64,6 +64,7 @@ module.exports = {
         darkBg: '#222F38',
         borderC: '#304352',
         symbolHover: 'rgba(126, 138, 147, 0.15)',
+        grayBgLight: 'rgba(126, 138, 147, 0.5)',
         symbolHover2: '#1C272F',
         feeColor: 'rgba(126, 138, 147, 0.1)',
         errorTip: 'rgba(249, 103, 103, 0.15)',
@@ -71,6 +72,7 @@ module.exports = {
         baseGreen: '#00C6A2',
         orderLineHover: '#14222D',
         dark2: '#071C2B',
+        dark3: '#39454E',
       },
       width: {
         '25vw': '25vw',

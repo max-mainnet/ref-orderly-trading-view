@@ -135,3 +135,16 @@ export interface Balance {
   fee24H: number;
   markPrice: number;
 }
+
+export interface OrderTrade {
+  id: number;
+  symbol: string;
+  fee: number;
+  fee_asset: string;
+  side: string;
+  order_id: number;
+  executed_price: number;
+  executed_quantity: number;
+  executed_timestamp: number;
+  is_maker: number;
+}

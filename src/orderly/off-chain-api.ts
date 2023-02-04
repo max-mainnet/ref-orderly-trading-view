@@ -226,6 +226,17 @@ export const getOpenOrders = async (props: {
   return res;
 };
 
+export const getOrderTrades = async (props: { accountId: string; order_id: string | number }) => {
+  const url = `/v1/order/${props.order_id}/trades`;
+
+  const res = requestOrderly({
+    url,
+    accountId: props.accountId,
+  });
+
+  return res;
+};
+
 export const getOrders = async (props: {
   accountId: string;
   OrderProps?: {

@@ -5,7 +5,7 @@ import { parseSymbol } from '../RecentTrade';
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import { MdArrowDropDown, MdArrowDropUp } from 'react-icons/md';
-import { MyOrder, EditOrderlyOrder } from '../../orderly/type';
+import { MyOrder, EditOrderlyOrder, orderStatus, OrderTrade } from '../../orderly/type';
 import { OrderStateOutline } from '../Common/Icons';
 import { useAllOrders } from '../../orderly/state';
 import { TextWrapper } from '../UserBoard';
@@ -15,7 +15,7 @@ import moment from 'moment';
 
 import { AiOutlineClose, AiOutlineCheck } from 'react-icons/ai';
 import { FlexRowStart } from '../Common/index';
-import { cancelOrder, cancelOrders, editOrder } from '../../orderly/off-chain-api';
+import { cancelOrder, cancelOrders, editOrder, getOrderTrades } from '../../orderly/off-chain-api';
 import { useWalletSelector } from '../../WalletSelectorContext';
 
 function CancelButton({ text, onClick }: { text: string; onClick: () => void }) {
@@ -47,12 +47,12 @@ function Selector({
   setSelect: (value: any) => void;
 }) {
   return (
-    <div className='absolute top-6'>
-      <div className='flex flex-col min-w-p90 items-start py-2 px-2 rounded-lg border border-borderC text-sm  bg-darkBg'>
+    <div className='absolute top-6 z-50'>
+      <div className='flex flex-col min-w-p90  items-start py-2 px-2 rounded-lg border border-borderC text-sm  bg-darkBg'>
         {list.map((item, index) => {
           return (
             <div
-              className={`cursor-pointer my-0.5 text-left pl-2 py-1 w-full rounded-md ${item.className} ${
+              className={`whitespace-nowrap cursor-pointer min-w-fit my-0.5 text-left pl-2 py-1 w-full rounded-md ${item.className} ${
                 selected === item.textId ? 'bg-symbolHover2' : ''
               } hover:bg-symbolHover2 `}
               key={item.textId + index}
@@ -158,15 +158,7 @@ function OrderLine({ order }: { order: MyOrder }) {
       </FlexRow>
 
       <FlexRowStart className='col-span-2 items-start'>
-        <div
-          className='flex flex-col overflow-hidden bg-dark2 rounded-lg border border-border2 text-sm  w-14 text-white'
-          onMouseEnter={() => {
-            setOpenEditQuantity(true);
-          }}
-          //   onMouseLeave={() => {
-          //     setOpenEditQuantity(false);
-          //   }}
-        >
+        <div className='flex flex-col overflow-hidden bg-dark2 rounded-lg border border-border2 text-sm  w-14 text-white'>
           <input
             ref={inputRef}
             inputMode='decimal'
@@ -213,15 +205,7 @@ function OrderLine({ order }: { order: MyOrder }) {
       </FlexRowStart>
 
       <FlexRowStart className='col-span-2 items-start'>
-        <div
-          className='flex flex-col overflow-hidden bg-dark2 rounded-lg border border-border2 text-sm  w-14 text-white'
-          onMouseEnter={() => {
-            setOpenEditPrice(true);
-          }}
-          //   onMouseLeave={() => {
-          //     setOpenEditPrice(false);
-          //   }}
-        >
+        <div className='flex flex-col overflow-hidden bg-dark2 rounded-lg border border-border2 text-sm  w-14 text-white'>
           <input
             ref={inputRefPrice}
             inputMode='decimal'
@@ -298,7 +282,178 @@ function OrderLine({ order }: { order: MyOrder }) {
   );
 }
 
-function OpenOrders({ orders, symbol }: { orders: MyOrder[]; symbol: string }) {
+function HistoryOrderLine({ order, symbol }: { order: MyOrder; symbol: string }) {
+  const [openFilledDetail, setOpenFilledDetail] = useState<boolean>(false);
+
+  const [orderTradesHistory, setOrderTradesHistory] = useState<OrderTrade[]>();
+
+  const { accountId } = useWalletSelector();
+
+  const { symbolFrom, symbolTo } = parseSymbol(symbol);
+
+  async function handleSubmit() {
+    if (!!orderTradesHistory) {
+      setOpenFilledDetail(!openFilledDetail);
+      return;
+    }
+    if (!accountId) return;
+
+    const res = await getOrderTrades({
+      accountId,
+      order_id: order.order_id,
+    });
+    if (!res.success) {
+      return;
+    }
+
+    setOrderTradesHistory(res.data.rows);
+    setOpenFilledDetail(!openFilledDetail);
+  }
+
+  return (
+    <div className='hover:bg-orderLineHover'>
+      <div key={order.order_id} className='grid  grid-cols-12 pl-5 pr-4 py-2 border-t border-white border-opacity-10'>
+        <FlexRow className='relative col-span-1'>
+          <span>{order.type === 'MARKET' ? 'Market' : 'Limit'}</span>
+        </FlexRow>
+
+        <FlexRow className='col-span-1'>
+          <TextWrapper
+            className='px-2 text-sm'
+            value={order.side === 'BUY' ? 'Buy' : 'Sell'}
+            bg={order.side === 'BUY' ? 'bg-buyGreen' : 'bg-sellRed'}
+            textC={order.side === 'BUY' ? 'text-buyGreen' : 'text-sellRed'}
+          ></TextWrapper>
+        </FlexRow>
+
+        <FlexRowStart className='col-span-2 items-start'>
+          <span className='text-white'>{order.quantity}</span>
+
+          <span className='mx-1 '>/</span>
+
+          <span className=''>{order.executed}</span>
+        </FlexRowStart>
+
+        <FlexRowStart className='col-span-2 items-start'>
+          <span>{order.type === 'MARKET' ? '-' : order.price}</span>
+        </FlexRowStart>
+
+        <FlexRow className='col-span-2 text-white'>
+          <span>{order.status !== 'FILLED' ? '-' : order.average_executed_price}</span>
+        </FlexRow>
+
+        <FlexRow className='col-span-1 text-white'>
+          {new Big(order.quantity || '0')
+            .times(new Big(order.average_executed_price || '0'))
+            .minus(order.total_fee)
+            .toFixed(2)}
+        </FlexRow>
+
+        <FlexRow className='col-span-2 text-primary'>{formatTimeDate(order.created_time)}</FlexRow>
+
+        <FlexRow className='col-span-1 text-white'>
+          <div className='flex items-center justify-center'>
+            <span className='capitalize'>{order.status.toLowerCase()}</span>
+            {order.status === 'FILLED' && (
+              <div
+                className={`cursor-pointer  rounded-full  ml-2 ${
+                  openFilledDetail ? 'bg-baseGreen' : 'bg-dark3'
+                }  w-3 h-3 flex items-center justify-center`}
+                onClick={() => {
+                  handleSubmit();
+                }}
+              >
+                <div className='transform scale-95'>
+                  <MdArrowDropDown
+                    size={22}
+                    color={openFilledDetail ? '#1C272F' : '#17252E'}
+                    className={`${openFilledDetail ? 'transform rotate-180' : ''} `}
+                  ></MdArrowDropDown>
+                </div>
+              </div>
+            )}
+          </div>
+        </FlexRow>
+      </div>
+
+      {openFilledDetail && orderTradesHistory && (
+        <div className='flex flex-col items-end w-full mb-3'>
+          <div className='w-10/12 border-b border-white border-opacity-10 pb-2'></div>
+          <div className='grid grid-cols-11  border-white mt-2 pb-3 pt-1 border-opacity-10 w-10/12 '>
+            <div className='col-span-1 text-right'>Qty{`(${symbolFrom})`}</div>
+            <div className='col-span-1'></div>
+
+            <div className='col-span-1 text-right'>
+              Price
+              {`(${symbolTo})`}
+            </div>
+            <div className='col-span-1'></div>
+
+            <div className='col-span-1 text-right'>
+              Fee
+              {`(${symbolTo})`}
+            </div>
+            <div className='col-span-1'></div>
+
+            <div className='col-span-1 text-right'>
+              Total
+              {`(${symbolTo})`}
+            </div>
+
+            <div className='col-span-1'></div>
+
+            <div className=' col-span-2'>Time</div>
+
+            <div className='col-span-1'></div>
+          </div>
+          <div className='w-10/12'>
+            {orderTradesHistory.map((trade) => (
+              <div
+                key={order.order_id + '_' + trade.id}
+                className='text-white  pb-2 grid-cols-11 grid'
+                style={{
+                  height: '30px',
+                }}
+              >
+                <div className='col-span-1 text-right'>{trade.executed_quantity}</div>
+                <div className='col-span-1'></div>
+                <div className='col-span-1 text-right'>{trade.executed_price}</div>
+                <div className='col-span-1'></div>
+                <div className='col-span-1 text-right'>{trade.fee}</div>
+                <div className='col-span-1'></div>
+                <div className='col-span-1 text-right'>
+                  {new Big(trade.executed_quantity || '0')
+                    .times(new Big(trade.executed_price || '0'))
+                    .minus(trade.fee)
+                    .toFixed(2)}
+                </div>
+
+                <div className='col-span-1'></div>
+
+                <div className='col-span-2 text-primary pr-6 relative right-10'>{formatTimeDate(trade.executed_timestamp)}</div>
+
+                <div className='col-span-1'></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function OpenOrders({
+  orders,
+  symbol,
+  hidden,
+  setOpenCount,
+}: {
+  orders: MyOrder[];
+  symbol: string;
+  hidden?: boolean;
+
+  setOpenCount: (c: number) => void;
+}) {
   const { symbolFrom, symbolTo } = parseSymbol(symbol);
 
   const [showSideSelector, setShowSideSelector] = useState<boolean>(false);
@@ -327,6 +482,12 @@ function OpenOrders({ orders, symbol }: { orders: MyOrder[]; symbol: string }) {
         setShowSideSelector(false);
       });
   }, [showSideSelector]);
+
+  useEffect(() => {
+    setOpenCount(orders.filter(filterFunc).length);
+  }, [chooseSide, !!orders]);
+
+  if (hidden) return null;
 
   return (
     <>
@@ -463,7 +624,280 @@ function OpenOrders({ orders, symbol }: { orders: MyOrder[]; symbol: string }) {
   );
 }
 
-function HistoryOrders() {}
+function HistoryOrders({
+  orders,
+  symbol,
+  hidden,
+  setHistoryCount,
+}: {
+  orders: MyOrder[];
+  symbol: string;
+  hidden?: boolean;
+
+  setHistoryCount: (c: number) => void;
+}) {
+  const { symbolFrom, symbolTo } = parseSymbol(symbol);
+
+  const [showSideSelector, setShowSideSelector] = useState<boolean>(false);
+
+  const [showStatuesSelector, setShowStatuesSelector] = useState<boolean>(false);
+
+  const [chooseSide, setChooseSide] = useState<'Both' | 'Buy' | 'Sell'>('Both');
+
+  const [chooseType, setChooseType] = useState<'All Type' | 'Limit Order' | 'Market Order'>('All Type');
+
+  const [chooseStatus, setChooseStatus] = useState<'All Status' | 'Cancelled' | 'Filled' | 'Rejected'>('All Status');
+
+  const [showTypeSelector, setShowTypeSelector] = useState<boolean>(false);
+
+  const [timeSorting, setTimeSorting] = useState<'asc' | 'dsc'>();
+
+  const sortingFunc = (a: MyOrder, b: MyOrder) => {
+    if (timeSorting === 'asc') {
+      return a.created_time - b.created_time;
+    } else {
+      return b.created_time - a.created_time;
+    }
+  };
+
+  const filterFunc = (order: MyOrder) => {
+    const side = chooseSide === 'Both' || order.side.toLowerCase() === chooseSide.toLowerCase();
+
+    const type =
+      chooseType === 'All Type' ||
+      (order.type === 'MARKET' && chooseType === 'Market Order') ||
+      (order.type === 'LIMIT' && chooseType === 'Limit Order');
+
+    const status = chooseStatus === 'All Status' || order.status.toLowerCase() === chooseStatus.toLowerCase();
+
+    return side && type && status;
+  };
+
+  useEffect(() => {
+    setHistoryCount(orders.filter(filterFunc).length);
+  }, [chooseSide, chooseType, chooseStatus, !!orders]);
+
+  useEffect(() => {
+    if (showSideSelector || showTypeSelector || showStatuesSelector)
+      document.addEventListener('click', () => {
+        setShowSideSelector(false);
+        setShowTypeSelector(false);
+
+        setShowStatuesSelector(false);
+      });
+  }, [showSideSelector, showTypeSelector, showStatuesSelector]);
+
+  if (hidden) return null;
+
+  return (
+    <>
+      {/* Header */}
+      <div className='grid grid-cols-12 pl-5 pr-4 py-2 border-b   border-white border-opacity-10'>
+        <FlexRow className='col-span-1 relative'>
+          <div
+            className='cursor-pointer flex items-center'
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setShowTypeSelector(!showTypeSelector);
+            }}
+          >
+            <span>Type</span>
+
+            <MdArrowDropDown size={22} color={showTypeSelector ? 'white' : '#7E8A93'} />
+          </div>
+          {showTypeSelector && (
+            <Selector
+              selected={chooseType}
+              setSelect={setChooseType}
+              list={[
+                {
+                  text: 'All Type',
+                  textId: 'All Type',
+                  className: 'text-white',
+                },
+                {
+                  text: 'Limit Order',
+                  textId: 'Limit Order',
+                  className: 'text-white',
+                },
+                {
+                  text: 'Market Order',
+                  textId: 'Market Order',
+                  className: 'text-white',
+                },
+              ]}
+            />
+          )}
+        </FlexRow>
+
+        <FlexRow className='col-span-1  relative'>
+          <div
+            className='cursor-pointer flex items-center'
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setShowSideSelector(!showSideSelector);
+            }}
+          >
+            <span>Side</span>
+
+            <MdArrowDropDown size={22} color={showSideSelector ? 'white' : '#7E8A93'} />
+          </div>
+
+          {showSideSelector && (
+            <Selector
+              selected={chooseSide}
+              setSelect={setChooseSide}
+              list={[
+                {
+                  text: 'Both',
+                  textId: 'Both',
+                  className: 'text-white',
+                },
+                {
+                  text: 'Buy',
+                  textId: 'Buy',
+                  className: 'text-buyGreen',
+                },
+                {
+                  text: 'Sell',
+                  textId: 'Sell',
+                  className: 'text-sellRed',
+                },
+              ]}
+            />
+          )}
+        </FlexRow>
+
+        <FlexRow className='col-span-2'>
+          <span>Qty/Filled</span>
+
+          <span
+            className='ml-1.5 rounded
+            px-1 bg-symbolHover
+          '
+            style={{
+              fontSize: '10px',
+            }}
+          >
+            {symbolFrom}
+          </span>
+        </FlexRow>
+
+        <FlexRow className='col-span-2'>
+          <span>Price</span>
+
+          <span
+            className='ml-1.5 rounded
+            px-1 bg-symbolHover
+          
+          '
+            style={{
+              fontSize: '10px',
+            }}
+          >
+            {symbolTo}
+          </span>
+        </FlexRow>
+
+        <FlexRow className='col-span-2'>
+          <span>Avg. Price</span>
+
+          <span
+            className='ml-1.5 rounded
+            px-1 bg-symbolHover
+          
+          '
+            style={{
+              fontSize: '10px',
+            }}
+          >
+            {symbolTo}
+          </span>
+        </FlexRow>
+        <FlexRow className='col-span-1'>
+          <span>Est. Total</span>
+        </FlexRow>
+
+        <FlexRow className=' col-span-2 '>
+          <div
+            className='cursor-pointer flex'
+            onClick={() => {
+              setTimeSorting(timeSorting === 'asc' ? 'dsc' : 'asc');
+            }}
+          >
+            <span>Time</span>
+            {
+              <MdArrowDropDown
+                className={timeSorting === 'asc' ? 'transform rotate-180' : ''}
+                size={22}
+                color={timeSorting === undefined ? '#7e8a93' : 'white'}
+              />
+            }
+          </div>
+        </FlexRow>
+
+        <FlexRow className='col-span-1 relative'>
+          <div
+            className='cursor-pointer flex items-center'
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setShowStatuesSelector(!showStatuesSelector);
+            }}
+          >
+            <span>Status</span>
+
+            <MdArrowDropDown size={22} color={showStatuesSelector ? 'white' : '#7E8A93'} />
+          </div>
+
+          {showStatuesSelector && (
+            <Selector
+              selected={chooseStatus}
+              setSelect={setChooseStatus}
+              list={[
+                {
+                  text: 'All Status',
+                  textId: 'All Status',
+                  className: 'text-white',
+                },
+                {
+                  text: 'Filled',
+                  textId: 'Filled',
+                  className: 'text-white',
+                },
+                {
+                  text: 'Cancelled',
+                  textId: 'Cancelled',
+                  className: 'text-white',
+                },
+                {
+                  text: 'Rejected',
+                  textId: 'Rejected',
+                  className: 'text-white',
+                },
+              ]}
+            />
+          )}
+        </FlexRow>
+      </div>
+      <div
+        className='flex flex-col overflow-auto'
+        style={{
+          height: 'calc(100vh - 750px)',
+        }}
+      >
+        {orders
+          .sort(sortingFunc)
+          .filter(filterFunc)
+          .map((order) => {
+            return <HistoryOrderLine symbol={symbol} order={order} key={order.order_id} />;
+          })}
+      </div>
+    </>
+  );
+}
 
 function OrderBoard() {
   const { symbol, allOrders, handlePendingOrderRefreshing } = useOrderlyContext();
@@ -471,8 +905,6 @@ function OrderBoard() {
   const { accountId } = useWalletSelector();
 
   //   const allOrders = useAllOrders({ symbol, refreshingTag: false });
-
-  const { symbolFrom, symbolTo } = parseSymbol(symbol);
 
   const [tab, setTab] = useState<'open' | 'history'>('open');
 
@@ -484,6 +916,10 @@ function OrderBoard() {
   const historyOrders = allOrders.filter((o) => {
     return openOrders.map((o) => o.order_id).indexOf(o.order_id) === -1;
   });
+
+  const [openCount, setOpenCount] = useState<number>();
+
+  const [historyCount, setHistoryCount] = useState<number>();
 
   return (
     <div className='rounded-2xl border text-primary border-boxBorder    w-full text-sm bg-black  bg-opacity-10 py-4'>
@@ -502,7 +938,7 @@ function OrderBoard() {
                 tab === 'open' ? 'bg-baseGreen text-black' : 'text-primary bg-symbolHover'
               } `}
             >
-              {openOrders.length}
+              {openCount === undefined ? openOrders.length : openCount}
             </span>
           </FlexRow>
 
@@ -516,10 +952,10 @@ function OrderBoard() {
 
             <span
               className={`flex items-center justify-center px-1.5 min-w-fit w-4 text-xs rounded-md  ml-2 ${
-                tab === 'history' ? 'bg-baseGreen text-black' : 'text-primary bg-symbolHover'
+                tab === 'history' ? 'bg-grayBgLight text-white' : 'text-primary bg-symbolHover'
               } `}
             >
-              {historyOrders.length}
+              {historyCount === undefined ? historyOrders.length : historyCount}
             </span>
           </FlexRow>
         </FlexRow>
@@ -544,7 +980,8 @@ function OrderBoard() {
           />
         )}
       </FlexRowBetween>
-      {tab === 'open' && <OpenOrders orders={openOrders} symbol={symbol} />}
+      {<OpenOrders orders={openOrders} setOpenCount={setOpenCount} symbol={symbol} hidden={tab === 'history'} />}
+      {<HistoryOrders setHistoryCount={setHistoryCount} orders={historyOrders} symbol={symbol} hidden={tab === 'open'} />}
     </div>
   );
 }

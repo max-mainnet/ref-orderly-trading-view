@@ -65,3 +65,7 @@ html {
   min-width: 7rem !important;
   opacity: 1 !important;
 }
+
+th {
+  font-weight: normal;
+}
