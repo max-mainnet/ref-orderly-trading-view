@@ -10,22 +10,6 @@ import { parseSymbol } from '../components/RecentTrade/index';
 import { useTokenInfo } from './state';
 import { getFTmetadata } from '../near';
 
-function useInterval(callback: Function, delay: number) {
-  const latestCallback = useRef<Function>(() => {});
-
-  useEffect(() => {
-    latestCallback.current = callback;
-  });
-
-  useEffect(() => {
-    if (delay !== null) {
-      const interval = setInterval(() => latestCallback.current(), delay || 0);
-      return () => clearInterval(interval);
-    }
-    return undefined;
-  }, [delay]);
-}
-
 export const REF_ORDERLY_WS_ID_PREFIX = 'orderly_ws_';
 
 export const useOrderlyWS = () => {
@@ -227,7 +211,6 @@ export const useOrderlyMarketData = ({ symbol }: { symbol: string }) => {
       });
 
       let bids = orders.bids;
-      console.log('bids111111: ', bids);
 
       lastJsonMessage.data.bids.forEach((bid: number[]) => {
         const price = bid[0];

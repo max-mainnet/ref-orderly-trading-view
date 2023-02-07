@@ -20,3 +20,22 @@ export function OrderStateOutline() {
     </svg>
   );
 }
+
+export function GrayBgBox(props: any) {
+  return (
+    <svg width='90' height='26' viewBox='0 0 90 26' fill='none' xmlns='http://www.w3.org/2000/svg' {...props}>
+      <path
+        d='M0 6C0 2.68629 2.68629 0 6 0H85.8366C88.7333 0 90.6696 2.98345 89.4898 5.6291L81.463 23.6291C80.8199 25.0711 79.3887 26 77.8097 26H5.99999C2.68629 26 0 23.3137 0 20V6Z'
+        fill='#213A4D'
+      />
+    </svg>
+  );
+}
+
+export function ArrowCurve() {
+  return (
+    <svg width='8' height='10' viewBox='0 0 8 10' fill='none' className='ml-1' xmlns='http://www.w3.org/2000/svg'>
+      <path d='M1 9C1.33333 7.16667 3 3 7 1M7 1H2.5M7 1V5.25' stroke='white' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round' />
+    </svg>
+  );
+}

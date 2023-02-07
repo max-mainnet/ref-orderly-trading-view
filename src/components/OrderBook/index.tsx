@@ -2,6 +2,8 @@ import React, { useRef, useEffect, useState } from 'react';
 import { useOrderlyContext } from '../../orderly/OrderlyContext';
 import RecentTrade from '../RecentTrade';
 
+import { Orders } from '../../orderly/type';
+
 function parseSymbol(fullName: string) {
   return {
     symbolFrom: fullName.split('_')[1],
@@ -9,8 +11,87 @@ function parseSymbol(fullName: string) {
   };
 }
 
+function groupOrdersByPrecision({ orders, precision }: { orders: Orders | undefined; precision: number }) {
+  // this function is to group orders by precision,
+
+  if (!orders) return {};
+
+  const asks = orders.asks;
+
+  const bids = orders.bids;
+
+  const asktotalSize = asks.map(([price, quantity]) => {
+    return [price, price * quantity];
+  });
+
+  const bidtotalSize = bids.map(([price, quantity]) => {
+    return [price, price * quantity];
+  });
+
+  const groupedAsktotalSize = asktotalSize.reduce((acc, cur) => {
+    const groupKey = Math.floor(cur[0] * 10 ** precision) / 10 ** precision;
+
+    const keyStr = groupKey.toString();
+
+    return {
+      ...acc,
+      [groupKey]: acc[keyStr] ? acc[keyStr] + cur[1] : cur[1],
+    };
+  }, {} as Record<string, number>);
+
+  const groupedBidtotalSize = bidtotalSize.reduce(
+    (acc, cur) => {
+      const groupKey = Math.floor(cur[0] * 10 ** precision) / 10 ** precision;
+
+      const keyStr = groupKey.toString();
+
+      return {
+        ...acc,
+        [groupKey]: acc[keyStr] ? acc[keyStr] + cur[1] : cur[1],
+      };
+    },
+
+    {} as Record<string, number>
+  );
+  const groupedAsks = asks.reduce((acc, cur) => {
+    const groupKey = Math.floor(cur[0] * 10 ** precision) / 10 ** precision;
+
+    const keyStr = groupKey.toString();
+
+    return {
+      ...acc,
+      [groupKey]: acc[keyStr] ? acc[keyStr] + cur[1] : cur[1],
+    };
+  }, {} as Record<string, number>);
+
+  const groupedBids = bids.reduce((acc, cur) => {
+    const groupKey = Math.floor(cur[0] * 10 ** precision) / 10 ** precision;
+
+    const keyStr = groupKey.toString();
+
+    return {
+      ...acc,
+      [groupKey]: acc[keyStr] ? acc[keyStr] + cur[1] : cur[1],
+    };
+  }, {} as Record<string, number>);
+
+  return {
+    asks: Object.entries(groupedAsks).map(([price, amount]) => [Number(price), amount]),
+    bids: Object.entries(groupedBids).map(([price, amount]) => [Number(price), amount]),
+    asktotalSize: Object.entries(groupedAsktotalSize).map(([price, amount]) => [Number(price), amount]),
+    bidtotalSize: Object.entries(groupedBidtotalSize).map(([price, amount]) => [Number(price), amount]),
+  };
+}
+
 function OrderBook() {
   const { orders, marketTrade, symbol } = useOrderlyContext();
+
+  const [precision, setPrecision] = useState<number>(2);
+
+  const { asks, bids, asktotalSize, bidtotalSize } = groupOrdersByPrecision({
+    orders,
+    precision,
+  });
 
   const { symbolFrom, symbolTo } = parseSymbol(symbol);
   const [tab, setTab] = useState<'recent' | 'book'>('book');
@@ -67,14 +148,14 @@ function OrderBook() {
               height: '225px',
             }}
           >
-            {orders?.asks.map((order, i) => {
+            {asks?.map((order, i) => {
               return (
                 <div className='grid hover:bg-symbolHover grid-cols-3 mr-2 py-1 justify-items-end' key={'orderbook-ask-' + i}>
                   <span className='text-sellRed justify-self-start'>{order[0]}</span>
 
                   <span className=''>{order[1]}</span>
 
-                  <span>{(order[1] * order[0]).toFixed(2)}</span>
+                  <span>{asktotalSize[i][1].toFixed(2)}</span>
                 </div>
               );
             })}
@@ -96,14 +177,14 @@ function OrderBook() {
               height: '225px',
             }}
           >
-            {orders?.bids.map((order, i) => {
+            {bids?.map((order, i) => {
               return (
                 <div className='grid grid-cols-3 mr-2 py-1 hover:bg-symbolHover  justify-items-end' key={'orderbook-ask-' + i}>
                   <span className='text-buyGreen justify-self-start'>{order[0]}</span>
 
                   <span className=''>{order[1]}</span>
 
-                  <span>{(order[1] * order[0]).toFixed(2)}</span>
+                  <span>{bidtotalSize[i][1].toFixed(2)}</span>
                 </div>
               );
             })}

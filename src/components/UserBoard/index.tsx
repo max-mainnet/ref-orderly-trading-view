@@ -25,8 +25,10 @@ import { IoClose } from 'react-icons/io5';
 import { IoIosArrowForward, IoIosArrowDown, IoIosArrowUp } from 'react-icons/io';
 import { toReadableNumber } from '../../orderly/utils';
 import { user_request_withdraw } from '../../orderly/on-chain-api';
-import { CheckBox, ConnectWallet, TipWrapper } from '../Common';
-import { orderPopUp } from '../Common/index';
+import { CheckBox, ConnectWallet, TipWrapper, WithdrawButton } from '../Common';
+import { orderPopUp, DepositButton } from '../Common/index';
+import { useTokenBalance } from './state';
+import { digitWrapper } from '../../utiles';
 
 Modal.defaultStyles = {
   overlay: {
@@ -39,6 +41,7 @@ Modal.defaultStyles = {
     zIndex: 100,
     backdropFilter: 'blur(15px)',
     WebkitBackdropFilter: 'blur(15px)',
+    outline: 'none',
   },
   content: {
     position: 'absolute',
@@ -48,6 +51,7 @@ Modal.defaultStyles = {
     top: '50%',
     left: '50%',
     transform: 'translate(-50%, -65%)',
+    outline: 'none',
   },
 };
 
@@ -88,7 +92,7 @@ function UserBoard() {
 
   const [inputValue, setInputValue] = useState<string>('1');
 
-  const [limitPrice, setLimitPrice] = useState<string>(marketTrade ? marketTrade.price.toString() : '');
+  const [limitPrice, setLimitPrice] = useState<string>(marketTrade ? marketTrade?.price?.toString() || '' : '');
 
   const [userInfo, setUserInfo] = useState<ClientInfo>();
 
@@ -106,6 +110,10 @@ function UserBoard() {
   const inputAmountRef = useRef<HTMLInputElement>(null);
 
   const [tokenIn, setTokenIn] = useState<TokenMetadata>();
+
+  const tokenFromBalance = useTokenBalance(idFrom);
+
+  const tokenToBalance = useTokenBalance(idTo);
 
   useEffect(() => {
     if (!accountId) return;
@@ -273,46 +281,62 @@ function UserBoard() {
         register orderly
       </button>
 
-      <div className='text-sm text-white font-bold mb-4 text-left'>Balance</div>
-
-      <div className='flex items-center mb-5 text-white text-sm justify-between'>
-        <div className='flex items-center'>
-          <img src={iconIn} className='rounded-full w-6 h-6 mr-2' alt='' />
-          <span>{symbolFrom}</span>
-        </div>
+      <div className='text-sm text-white font-bold mb-4 text-left flex items-center justify-between'>
+        <span>Balances</span>
 
         <div className='flex items-center'>
-          <span>{tokenInHolding ? tokenInHolding.toFixed(2) : null}</span>
-          <span
-            className='text-primary text-xs ml-2.5 p-1 hover:text-baseGreen hover:bg-symbolHover rounded cursor-pointer'
+          <DepositButton
             onClick={() => {
               setOperationType('deposit');
               setOperationId(idFrom || '');
             }}
-          >
-            Deposit
-          </span>
+          ></DepositButton>
+
+          <WithdrawButton
+            onClick={() => {
+              setOperationType('withdraw');
+              setOperationId(idFrom || '');
+            }}
+          ></WithdrawButton>
         </div>
       </div>
 
-      <div className='flex items-center text-white text-sm justify-between'>
-        <div className='flex items-center'>
+      <div className='grid grid-cols-4 text-sm text-primary mb-2'>
+        <span className='col-span-2  justify-self-start'>Asset</span>
+
+        <span className='justify-self-start'>Wallet</span>
+
+        <span className='justify-self-end'>Account</span>
+      </div>
+
+      <div className='grid grid-cols-4 items-center mb-5 text-white text-sm justify-between'>
+        <div className='flex items-center justify-self-start col-span-2'>
+          <img src={iconIn} className='rounded-full w-6 h-6 mr-2' alt='' />
+          <span>{symbolFrom}</span>
+        </div>
+
+        <div className='justify-self-start'>{!!tokenFromBalance ? digitWrapper(tokenFromBalance, 2) : '-'}</div>
+
+        <div className='flex items-center justify-self-end'>
+          <span>{tokenInHolding ? tokenInHolding.toFixed(2) : null}</span>
+        </div>
+      </div>
+
+      <div className=' items-center text-white text-sm justify-between grid grid-cols-4'>
+        <div className='flex items-center justify-self-start col-span-2'>
           <img src={iconOut} className='rounded-full w-6 h-6 mr-2' alt='' />
           <span>{symbolTo}</span>
         </div>
 
-        <div className='flex items-center'>
+        <div className='justify-self-start'>{!!tokenToBalance ? digitWrapper(tokenToBalance, 2) : ''}</div>
+
+        <div className='flex items-center justify-self-end'>
           <span>{tokenOutHolding ? tokenOutHolding.toFixed(2) : null}</span>
-          <span
-            onClick={() => {
-              setOperationType('deposit');
-              setOperationId(idTo || '');
-            }}
-            className='text-primary text-xs ml-2.5 p-1 hover:text-baseGreen hover:bg-symbolHover rounded cursor-pointer'
-          >
-            Deposit
-          </span>
         </div>
+      </div>
+
+      <div className='inline-flex text-primary justify-end border-b border-white border-opacity-10 mt-3'>
+        <span className='text-sm py-1.5  mb-3 px-3 rounded-lg bg-symbolHover cursor-pointer'>Sell all</span>
       </div>
 
       {/* sell and buy button  */}
@@ -619,7 +643,7 @@ function UserBoard() {
         symbolTo={symbolTo}
         side={side}
         quantity={inputValue}
-        price={orderType === 'Limit' ? limitPrice : markPriceSymbol?.price.toString() || '0'}
+        price={orderType === 'Limit' ? limitPrice : markPriceSymbol?.price?.toString() || '0'}
         fee={fee}
         totalCost={total}
         onClick={handleSubmit}
@@ -691,11 +715,11 @@ function AssetManagerModal(
 
   function validation() {
     if (type === 'deposit') {
-      if (tokenId === 'near' && new Big(walletBalance ?? 0).minus(new Big(inputValue ?? '0')).lt(0.25)) {
+      if (tokenId === 'near' && new Big(walletBalance || 0).minus(new Big(inputValue ?? '0')).lt(0.25) && walletBalance !== '') {
         return false;
       }
 
-      if (tokenId !== 'near' && new Big(walletBalance ?? 0).minus(new Big(inputValue ?? '0')).lt(0)) {
+      if (tokenId !== 'near' && new Big(walletBalance || 0).minus(new Big(inputValue ?? '0')).lt(0)) {
         return false;
       }
     }
@@ -809,9 +833,11 @@ function AssetManagerModal(
               />
 
               <div
-                className='rangeText rounded-lg absolute py-0.5 text-xs text-center w-10'
+                className={`rangeText rounded-lg absolute py-0.5 text-xs ${
+                  type === 'withdraw' ? 'text-white' : 'text-black'
+                }  font-bold text-center w-10`}
                 style={{
-                  background: 'rgba(126, 138, 147, 0.1)',
+                  background: type === 'withdraw' ? '#4627FF' : '#00C6A2',
                   left: `calc(${percentage}% - 40px * ${percentage} / 100)`,
                   //   transform: `translateX(-${Number(percentage)}%)`,
                   position: 'absolute',

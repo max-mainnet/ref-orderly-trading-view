@@ -484,6 +484,8 @@ function OpenOrders({
   }, [showSideSelector]);
 
   useEffect(() => {
+    if (!orders) return;
+
     setOpenCount(orders.filter(filterFunc).length);
   }, [chooseSide, !!orders]);
 
@@ -674,6 +676,8 @@ function HistoryOrders({
   };
 
   useEffect(() => {
+    if (!orders) return;
+
     setHistoryCount(orders.filter(filterFunc).length);
   }, [chooseSide, chooseType, chooseStatus, !!orders]);
 
@@ -917,9 +921,17 @@ function OrderBoard() {
     return openOrders.map((o) => o.order_id).indexOf(o.order_id) === -1;
   });
 
-  const [openCount, setOpenCount] = useState<number>();
+  const [openCount, setOpenCount] = useState<number>(openOrders.length);
+  console.log('openCount: ', openCount);
 
-  const [historyCount, setHistoryCount] = useState<number>();
+  const [historyCount, setHistoryCount] = useState<number>(historyOrders.length);
+  console.log('historyCount: ', historyCount);
+
+  useEffect(() => {
+    setOpenCount(openOrders.length);
+
+    setHistoryCount(historyOrders.length);
+  }, [allOrders]);
 
   return (
     <div className='rounded-2xl border text-primary border-boxBorder    w-full text-sm bg-black  bg-opacity-10 py-4'>

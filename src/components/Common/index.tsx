@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import ReactTooltip from 'react-tooltip';
-import { NearIcon, OrderStateOutline } from './Icons';
+import { GrayBgBox, NearIcon, OrderStateOutline, ArrowCurve } from './Icons';
 import { useTokenMetaFromSymbol } from '../ChartHeader/state';
 import { useOrderlyContext } from '../../orderly/OrderlyContext';
 import { parseFullSymbol } from '../../datafeed/helpers';
@@ -8,6 +8,8 @@ import { toast, ToastContainer } from 'react-toastify';
 import { TokenMetadata } from '../../orderly/type';
 import { parseSymbol } from '../RecentTrade';
 import 'react-toastify/dist/ReactToastify.css';
+
+import { HiDownload } from 'react-icons/hi';
 
 export function TokenIcon({ src }: { src: any }) {
   return <img src={src} alt='' className={`h-5 w-5 rounded-full `} />;
@@ -247,5 +249,45 @@ export function orderPopUp({
         border: '1px solid #304352',
       },
     }
+  );
+}
+
+export function DepositButton(props: any) {
+  return (
+    <div
+      className='relative  flex items-center justify-center text-white'
+      style={{
+        width: '92px',
+      }}
+      {...props}
+    >
+      <GrayBgBox className='absolute  cursor-pointer left-0 -bottom-0.5 z-10'></GrayBgBox>
+
+      <div className='flex cursor-pointer items-center relative z-40 font-normal'>
+        <span className='text-13px'>Deposit</span>
+
+        <HiDownload className='ml-1' />
+      </div>
+    </div>
+  );
+}
+
+export function WithdrawButton(props: any) {
+  return (
+    <div
+      className='relative  flex items-center justify-center text-white'
+      style={{
+        width: '92px',
+      }}
+      {...props}
+    >
+      <GrayBgBox className='absolute  cursor-pointer transform rotate-180 left-0 -bottom-0.5 z-10'></GrayBgBox>
+
+      <div className='flex  cursor-pointer items-center relative z-40 font-normal'>
+        <span className='text-13px'>Withdraw</span>
+
+        <ArrowCurve />
+      </div>
+    </div>
   );
 }
