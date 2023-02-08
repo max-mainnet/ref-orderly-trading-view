@@ -17,6 +17,7 @@ interface OrderlyContextValue {
   allTickers: Ticker[] | undefined;
   allOrders: MyOrder[];
   handlePendingOrderRefreshing: () => void;
+  pendingOrders: MyOrder[];
 }
 
 export const OrderlyContext = createContext<OrderlyContextValue | null>(null);
@@ -36,7 +37,8 @@ const OrderlyContextProvider: React.FC<any> = ({ children }) => {
 
   const privateValue = useOrderlyPrivateData();
 
-  // const pendingOrders = usePendingOrders({ symbol, refreshingTag: myPendingOrdersRefreshing });
+  const pendingOrders = usePendingOrders({ symbol, refreshingTag: myPendingOrdersRefreshing });
+  console.log('pendingOrders: ', pendingOrders);
 
   const allOrders = useAllOrders({ symbol, refreshingTag: myPendingOrdersRefreshing });
 
@@ -59,6 +61,7 @@ const OrderlyContextProvider: React.FC<any> = ({ children }) => {
         tokenInfo,
         allOrders,
         handlePendingOrderRefreshing,
+        pendingOrders,
       }}
     >
       {children}

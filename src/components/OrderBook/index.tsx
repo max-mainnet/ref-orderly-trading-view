@@ -2,7 +2,8 @@ import React, { useRef, useEffect, useState } from 'react';
 import { useOrderlyContext } from '../../orderly/OrderlyContext';
 import RecentTrade from '../RecentTrade';
 
-import { Orders } from '../../orderly/type';
+import { MyOrder, Orders } from '../../orderly/type';
+import { MyOrderTip } from '../Common';
 
 function parseSymbol(fullName: string) {
   return {
@@ -11,7 +12,7 @@ function parseSymbol(fullName: string) {
   };
 }
 
-function groupOrdersByPrecision({ orders, precision }: { orders: Orders | undefined; precision: number }) {
+function groupOrdersByPrecision({ orders, precision, pendingOrders }: { orders: Orders | undefined; precision: number; pendingOrders: MyOrder[] }) {
   // this function is to group orders by precision,
 
   if (!orders) return {};
@@ -75,35 +76,49 @@ function groupOrdersByPrecision({ orders, precision }: { orders: Orders | undefi
     };
   }, {} as Record<string, number>);
 
+  const groupMyPendingOrders = pendingOrders.reduce((acc, cur) => {
+    const groupKey = Math.floor(cur.price * 10 ** precision) / 10 ** precision;
+    const keyStr = groupKey.toString();
+
+    return {
+      ...acc,
+      [groupKey]: acc[keyStr] ? acc[keyStr] + cur.quantity : cur.quantity,
+    };
+  }, {} as Record<string, number>);
+
   return {
     asks: Object.entries(groupedAsks).map(([price, amount]) => [Number(price), amount]),
     bids: Object.entries(groupedBids).map(([price, amount]) => [Number(price), amount]),
     asktotalSize: Object.entries(groupedAsktotalSize).map(([price, amount]) => [Number(price), amount]),
     bidtotalSize: Object.entries(groupedBidtotalSize).map(([price, amount]) => [Number(price), amount]),
+    groupMyPendingOrders,
   };
 }
 
 function OrderBook() {
-  const { orders, marketTrade, symbol } = useOrderlyContext();
+  const { orders, marketTrade, symbol, pendingOrders } = useOrderlyContext();
 
   const [precision, setPrecision] = useState<number>(2);
 
-  const { asks, bids, asktotalSize, bidtotalSize } = groupOrdersByPrecision({
+  const { asks, bids, asktotalSize, bidtotalSize, groupMyPendingOrders } = groupOrdersByPrecision({
     orders,
     precision,
+    pendingOrders,
   });
+
+  console.log('groupMyPendingOrders: ', groupMyPendingOrders);
 
   const { symbolFrom, symbolTo } = parseSymbol(symbol);
   const [tab, setTab] = useState<'recent' | 'book'>('book');
 
   return (
     <div
-      className='w-full  border border-boxBorder text-sm rounded-2xl bg-black bg-opacity-10 p-4 '
+      className='w-full  border border-boxBorder text-sm rounded-2xl bg-black bg-opacity-10 py-4 '
       style={{
         height: '570px',
       }}
     >
-      <div className='flex mb-2 border-b border-white border-opacity-10 items-center '>
+      <div className='px-4 flex mb-2 border-b border-white border-opacity-10 items-center '>
         <div
           onClick={() => {
             setTab('book');
@@ -124,8 +139,8 @@ function OrderBook() {
 
       {tab === 'book' && (
         <>
-          <div className='flex items-center text-xs mb-2 mr-4 text-primary justify-between '>
-            <div>
+          <div className='px-4 flex items-center text-xs mb-2 mr-4 text-primary justify-between '>
+            <div className=''>
               <span>Price</span>
 
               <span className='text-white rounded-md ml-1 p-1 bg-primary bg-opacity-10'>{symbolTo}</span>
@@ -150,13 +165,19 @@ function OrderBook() {
           >
             {asks?.map((order, i) => {
               return (
-                <div className='grid hover:bg-symbolHover grid-cols-3 mr-2 py-1 justify-items-end' key={'orderbook-ask-' + i}>
-                  <span className='text-sellRed justify-self-start'>{order[0]}</span>
+                <>
+                  <div className='relative grid px-4 hover:bg-symbolHover grid-cols-3 mr-2 py-1 justify-items-end' key={'orderbook-ask-' + i}>
+                    <span className='text-sellRed justify-self-start'>{order[0]}</span>
 
-                  <span className=''>{order[1]}</span>
+                    <span className=''>{order[1]}</span>
 
-                  <span>{asktotalSize[i][1].toFixed(2)}</span>
-                </div>
+                    <span>{asktotalSize[i][1].toFixed(2)}</span>
+
+                    <div className='absolute left-0 top-1 z-40'>
+                      {pendingOrders && groupMyPendingOrders[order[0]] && <MyOrderTip price={order[0]} quantity={groupMyPendingOrders[order[0]]} />}
+                    </div>
+                  </div>
+                </>
               );
             })}
           </section>
@@ -172,19 +193,30 @@ function OrderBook() {
           {/* buy */}
 
           <section
-            className='text-xs overflow-auto text-white'
+            className='text-xs overflow-auto overflow-x-visible text-white'
             style={{
               height: '225px',
             }}
           >
             {bids?.map((order, i) => {
+              if (order[0] === 2.34) console.log('order: ', order, groupMyPendingOrders);
+
               return (
-                <div className='grid grid-cols-3 mr-2 py-1 hover:bg-symbolHover  justify-items-end' key={'orderbook-ask-' + i}>
+                <div className='px-4 relative grid grid-cols-3 mr-2 py-1 hover:bg-symbolHover  justify-items-end' key={'orderbook-ask-' + i}>
                   <span className='text-buyGreen justify-self-start'>{order[0]}</span>
 
                   <span className=''>{order[1]}</span>
 
                   <span>{bidtotalSize[i][1].toFixed(2)}</span>
+
+                  <div
+                    className='absolute left-0 top-1 z-40'
+                    style={{
+                      zIndex: 99999 - i,
+                    }}
+                  >
+                    {pendingOrders && groupMyPendingOrders[order[0]] && <MyOrderTip price={order[0]} quantity={groupMyPendingOrders[order[0]]} />}
+                  </div>
                 </div>
               );
             })}

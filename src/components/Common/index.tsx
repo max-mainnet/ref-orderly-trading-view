@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import ReactTooltip from 'react-tooltip';
-import { GrayBgBox, NearIcon, OrderStateOutline, ArrowCurve } from './Icons';
+import { GrayBgBox, NearIcon, OrderStateOutline, ArrowCurve, OrderSmile } from './Icons';
 import { useTokenMetaFromSymbol } from '../ChartHeader/state';
 import { useOrderlyContext } from '../../orderly/OrderlyContext';
 import { parseFullSymbol } from '../../datafeed/helpers';
@@ -288,6 +288,44 @@ export function WithdrawButton(props: any) {
 
         <ArrowCurve />
       </div>
+    </div>
+  );
+}
+
+export function MyOrderTip({ price, quantity }: { price: number; quantity: number }) {
+  const [showDetail, setShowDetail] = useState(false);
+
+  return (
+    <div
+      className='relative text-sm z-40 text-primary'
+      onMouseEnter={() => {
+        setShowDetail(true);
+      }}
+      onMouseLeave={() => {
+        setShowDetail(false);
+      }}
+    >
+      <OrderSmile></OrderSmile>
+      {showDetail && (
+        <div
+          className='absolute left-0 z-50 top-6 rounded-md border bg-orderTipBg border-border3 p-2 '
+          style={{
+            width: '120px',
+          }}
+        >
+          <div className='flex items-center justify-between'>
+            <span>Price</span>
+
+            <span className='text-white'>{price}</span>
+          </div>
+
+          <div className='flex items-center justify-between mt-2 '>
+            <span>Open Qty.</span>
+
+            <span className='text-white'>{quantity}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
