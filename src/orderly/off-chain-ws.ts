@@ -13,8 +13,6 @@ import { getFTmetadata } from '../near';
 export const REF_ORDERLY_WS_ID_PREFIX = 'orderly_ws_';
 
 export const useOrderlyWS = () => {
-  const { accountId } = useWalletSelector();
-
   const [socketUrl, setSocketUrl] = useState(getOrderlyWss());
 
   const [messageHistory, setMessageHistory] = useState<any>([]);

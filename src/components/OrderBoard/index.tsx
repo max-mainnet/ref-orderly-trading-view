@@ -247,11 +247,11 @@ function OrderLine({ order }: { order: MyOrder }) {
         </div>
       </FlexRowStart>
 
-      <FlexRow className='col-span-2 text-white'>
+      <FlexRow className='col-span-2 text-white ml-6'>
         <span>{order.status === 'PARTIAL_FILLED' ? order.average_executed_price.toFixed(2) : order.price.toFixed(2)}</span>
       </FlexRow>
 
-      <FlexRow className='col-span-1 text-white'>
+      <FlexRow className='col-span-1 text-white ml-4'>
         {new Big(quantity || '0').times(new Big(order.status === 'PARTIAL_FILLED' ? order.average_executed_price : order.price)).toFixed(2)}
       </FlexRow>
 
@@ -326,7 +326,7 @@ function HistoryOrderLine({ order, symbol }: { order: MyOrder; symbol: string })
           ></TextWrapper>
         </FlexRow>
 
-        <FlexRowStart className='col-span-2 items-start'>
+        <FlexRowStart className='col-span-2 ml-4 items-start'>
           <span className='text-white'>{order.quantity}</span>
 
           <span className='mx-1 '>/</span>
@@ -334,15 +334,15 @@ function HistoryOrderLine({ order, symbol }: { order: MyOrder; symbol: string })
           <span className=''>{order.executed}</span>
         </FlexRowStart>
 
-        <FlexRowStart className='col-span-2 items-start'>
+        <FlexRowStart className='col-span-2 ml-4 items-start'>
           <span>{order.type === 'MARKET' ? '-' : order.price}</span>
         </FlexRowStart>
 
-        <FlexRow className='col-span-2 text-white'>
+        <FlexRow className='col-span-2 ml-6 text-white'>
           <span>{order.status !== 'FILLED' ? '-' : order.average_executed_price}</span>
         </FlexRow>
 
-        <FlexRow className='col-span-1 text-white'>
+        <FlexRow className='col-span-1 ml-4 text-white'>
           {new Big(order.quantity || '0')
             .times(new Big(order.average_executed_price || '0'))
             .minus(order.total_fee)
@@ -587,7 +587,7 @@ function OpenOrders({
           <span>Est. Total</span>
         </FlexRow>
 
-        <FlexRow className=' col-span-2 '>
+        <FlexRow className=' flex items-center justify-center col-span-2 '>
           <div
             className='cursor-pointer flex'
             onClick={() => {
@@ -824,7 +824,7 @@ function HistoryOrders({
           <span>Est. Total</span>
         </FlexRow>
 
-        <FlexRow className=' col-span-2 '>
+        <FlexRow className='justify-center col-span-2 '>
           <div
             className='cursor-pointer flex'
             onClick={() => {

@@ -38,7 +38,7 @@ Modal.defaultStyles = {
     right: 0,
     bottom: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    zIndex: 100,
+    zIndex: 9999,
     backdropFilter: 'blur(15px)',
     WebkitBackdropFilter: 'blur(15px)',
     outline: 'none',

@@ -87,10 +87,18 @@ function groupOrdersByPrecision({ orders, precision, pendingOrders }: { orders: 
   }, {} as Record<string, number>);
 
   return {
-    asks: Object.entries(groupedAsks).map(([price, amount]) => [Number(price), amount]),
-    bids: Object.entries(groupedBids).map(([price, amount]) => [Number(price), amount]),
-    asktotalSize: Object.entries(groupedAsktotalSize).map(([price, amount]) => [Number(price), amount]),
-    bidtotalSize: Object.entries(groupedBidtotalSize).map(([price, amount]) => [Number(price), amount]),
+    asks: Object.entries(groupedAsks)
+      .map(([price, amount]) => [Number(price), amount])
+      .sort((a, b) => a[0] - b[0]),
+    bids: Object.entries(groupedBids)
+      .map(([price, amount]) => [Number(price), amount])
+      .sort((a, b) => b[0] - a[0]),
+    asktotalSize: Object.entries(groupedAsktotalSize)
+      .map(([price, amount]) => [Number(price), amount])
+      .sort((a, b) => a[0] - b[0]),
+    bidtotalSize: Object.entries(groupedBidtotalSize)
+      .map(([price, amount]) => [Number(price), amount])
+      .sort((a, b) => b[0] - a[0]),
     groupMyPendingOrders,
   };
 }
@@ -105,8 +113,6 @@ function OrderBook() {
     precision,
     pendingOrders,
   });
-
-  console.log('groupMyPendingOrders: ', groupMyPendingOrders);
 
   const { symbolFrom, symbolTo } = parseSymbol(symbol);
   const [tab, setTab] = useState<'recent' | 'book'>('book');
@@ -212,7 +218,7 @@ function OrderBook() {
                   <div
                     className='absolute left-0 top-1 z-40'
                     style={{
-                      zIndex: 99999 - i,
+                      zIndex: 999 - i,
                     }}
                   >
                     {pendingOrders && groupMyPendingOrders[order[0]] && <MyOrderTip price={order[0]} quantity={groupMyPendingOrders[order[0]]} />}
