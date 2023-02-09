@@ -152,6 +152,7 @@ export const useOrderlyMarketData = ({ symbol }: { symbol: string }) => {
   const [marketTrade, setMarketTrade] = useState<MarketTrade>();
 
   const [markPrices, setMarkPrices] = useState<MarkPrice[]>();
+  console.log('markPrices: ', markPrices);
 
   // subscribe
   useEffect(() => {

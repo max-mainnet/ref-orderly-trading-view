@@ -14,15 +14,9 @@ function formatTime(ts: number) {
 }
 
 function RecentTrade() {
-  //   const value = useOrderlyContext();
-  //   console.log('value: ', value);
-
   const { recentTrades, symbol } = useOrderlyContext();
-  console.log('recentTrades: ', recentTrades);
 
   const { symbolFrom, symbolTo } = parseSymbol(symbol);
-
-  //   console.log('recentTrades: ', recentTrades);
 
   return (
     <>

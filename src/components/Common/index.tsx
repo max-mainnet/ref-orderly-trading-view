@@ -190,7 +190,7 @@ export function orderPopUp({
         <div className='flex -mt-1 items-center'>
           <TokenIcon src={tokenIn?.icon} />
           <span className='text-white  ml-2'>{symbolFrom}</span>
-          <span>/ {symbolTo}</span>
+          <span> / {symbolTo}</span>
         </div>
 
         <div className='flex -mt-1 items-center'>

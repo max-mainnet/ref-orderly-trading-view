@@ -920,10 +920,8 @@ function OrderBoard() {
   });
 
   const [openCount, setOpenCount] = useState<number>(openOrders.length);
-  console.log('openCount: ', openCount);
 
   const [historyCount, setHistoryCount] = useState<number>(historyOrders.length);
-  console.log('historyCount: ', historyCount);
 
   useEffect(() => {
     setOpenCount(openOrders.length);
@@ -970,7 +968,7 @@ function OrderBoard() {
           </FlexRow>
         </FlexRow>
 
-        {tab === 'open' && (
+        {tab === 'open' && !!openCount && (
           <CancelButton
             text='Cancel All'
             onClick={() => {

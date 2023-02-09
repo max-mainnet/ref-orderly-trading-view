@@ -8,10 +8,8 @@ export function useTokenBalance(tokenId: string | undefined) {
 
   useEffect(() => {
     if (!tokenId) return;
-    console.log('tokenId111: ', tokenId);
 
     getFTmetadata(tokenId).then((meta) => {
-      console.log('meta11: ', meta, tokenId);
       setTokenMeta(meta);
     });
   }, [tokenId]);

@@ -117,6 +117,12 @@ const storage_balance_of = async (account_id: string) => {
   });
 };
 
+const get_cost_of_announce_key = () => {
+  return orderlyViewFunction({
+    methodName: 'storage_cost_of_announce_key',
+  });
+};
+
 const get_storage_deposit_amount = async (accountId: string) => {
   // const min_amount = (await storage_balance_bounds()).min;
 
@@ -179,4 +185,5 @@ export {
   deposit_exact_token,
   user_request_withdraw,
   get_storage_deposit_amount,
+  get_cost_of_announce_key,
 };

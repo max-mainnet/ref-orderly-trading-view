@@ -62,7 +62,7 @@ export function TextWrapper({ className, value, bg, textC }: { value: string; bg
 }
 
 function UserBoard() {
-  const { symbol, setSymbol, tokenInfo, ticker, marketTrade, markPrices, balances, handlePendingOrderRefreshing } = useOrderlyContext();
+  const { symbol, setSymbol, orders, tokenInfo, ticker, marketTrade, markPrices, balances, handlePendingOrderRefreshing } = useOrderlyContext();
 
   const { accountId, modal, selector } = useWalletSelector();
 
@@ -81,10 +81,8 @@ function UserBoard() {
   const [holdings, setHoldings] = useState<Holding[]>();
 
   const idFrom = tokenInfo && tokenInfo.find((t) => t.token === symbolFrom)?.token_account_id;
-  console.log('idFrom: ', idFrom);
 
   const idTo = tokenInfo && tokenInfo.find((t) => t.token === symbolTo)?.token_account_id;
-  console.log('idTo: ', idTo);
 
   const [operationId, setOperationId] = useState<string>(idFrom || '');
 
@@ -166,18 +164,18 @@ function UserBoard() {
       ? !userInfo || !limitPrice
         ? '-'
         : (userInfo.maker_fee_rate / 10000) * Number(limitPrice || 0) * Number(inputValue || 0)
-      : !userInfo || !markPriceSymbol
+      : !userInfo || !orders || !(side === 'Buy' ? orders.asks?.[0]?.[0] : orders?.bids?.[0]?.[0])
       ? '-'
-      : (userInfo.taker_fee_rate / 10000) * Number(markPriceSymbol.price || 0) * Number(inputValue || 0);
+      : (userInfo.taker_fee_rate / 10000) * Number(side === 'Buy' ? orders.asks?.[0]?.[0] : orders?.bids?.[0]?.[0] || 0) * Number(inputValue || 0);
 
   const total =
     orderType === 'Limit'
       ? !limitPrice || !userInfo || fee === '-'
         ? '-'
         : Number(inputValue || 0) * Number(limitPrice || 0) - Number(fee)
-      : !markPriceSymbol || !userInfo || fee === '-'
+      : !orders || !userInfo || fee === '-' || !(side === 'Buy' ? orders.asks?.[0]?.[0] : orders?.bids?.[0]?.[0])
       ? '-'
-      : Number(inputValue || 0) * Number(markPriceSymbol.price || 0) - Number(fee);
+      : Number(inputValue || 0) * Number((side === 'Buy' ? orders.asks?.[0]?.[0] : orders?.bids?.[0]?.[0]) || 0) - Number(fee);
 
   const handleSubmit = () => {
     if (!accountId) return;
@@ -189,6 +187,7 @@ function UserBoard() {
           symbol: symbol,
           order_type: 'MARKET',
           order_quantity: inputValue,
+          broker_id: 'ref_dex',
         },
       }).then(async (res) => {
         if (res.success === false) return;
@@ -213,6 +212,7 @@ function UserBoard() {
           order_price: limitPrice,
           order_type: typeof advanceLimitMode !== 'undefined' ? advanceLimitMode : 'LIMIT',
           order_quantity: inputValue,
+          broker_id: 'ref_dex',
         },
       }).then((res) => {
         if (res.success === false) return;
@@ -231,8 +231,8 @@ function UserBoard() {
     }
   };
 
-  const isInsufficientBalance = new Big(total === '-' ? '0' : total).gt(tokenOutHolding || '0');
-
+  const isInsufficientBalance =
+    side === 'Buy' ? new Big(total === '-' ? '0' : total).gt(tokenOutHolding || '0') : new Big(inputValue || '0').gt(tokenInHolding || '0');
   return (
     <div className='w-full p-6 relative flex flex-col  border-t border-l border-b h-screen border-boxBorder  bg-black bg-opacity-10'>
       {/* not signed in wrapper */}
@@ -920,7 +920,7 @@ function ConfirmOrderModal(
           <div className='flex items-center mb-5 justify-between'>
             <span>Qty.</span>
 
-            <span className='flex'>
+            <span className='flex items-center'>
               <span className='text-white mr-2'>{quantity}</span>
 
               <TextWrapper value={symbolFrom}></TextWrapper>
@@ -930,7 +930,7 @@ function ConfirmOrderModal(
           <div className='flex items-center mb-5 justify-between'>
             <span>Price</span>
 
-            <span className='flex'>
+            <span className='flex items-center'>
               <span className='text-white mr-2'>{price}</span>
               <TextWrapper value={`${symbolTo}/${symbolFrom}`}></TextWrapper>
             </span>
@@ -939,8 +939,8 @@ function ConfirmOrderModal(
           <div className='flex items-center mb-5 justify-between'>
             <span>Fee</span>
 
-            <span className='flex'>
-              <span className='text-white mr-2'>{fee}</span>
+            <span className='flex items-center'>
+              <span className='text-white mr-2'>{fee === '-' ? '-' : digitWrapper(fee.toString(), 3)}</span>
               <TextWrapper value={`${symbolTo}`}></TextWrapper>
             </span>
           </div>
@@ -949,7 +949,7 @@ function ConfirmOrderModal(
             <span className=''>Total cost</span>
 
             <span className='flex '>
-              <span className='text-white mr-2'>{totalCost}</span>
+              <span className='text-white mr-2'>{totalCost === '-' ? '-' : digitWrapper(totalCost.toString(), 3)}</span>
               <TextWrapper value={`${symbolTo}`}></TextWrapper>
             </span>
           </div>

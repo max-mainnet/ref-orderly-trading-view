@@ -38,7 +38,6 @@ const OrderlyContextProvider: React.FC<any> = ({ children }) => {
   const privateValue = useOrderlyPrivateData();
 
   const pendingOrders = usePendingOrders({ symbol, refreshingTag: myPendingOrdersRefreshing });
-  console.log('pendingOrders: ', pendingOrders);
 
   const allOrders = useAllOrders({ symbol, refreshingTag: myPendingOrdersRefreshing });
 
