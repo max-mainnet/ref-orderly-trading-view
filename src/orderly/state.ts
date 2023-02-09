@@ -83,7 +83,7 @@ export function usePendingOrders({ symbol, refreshingTag }: { symbol: string; re
     setFunc();
   }, [refreshingTag, symbol, setFunc]);
 
-  return liveOrders;
+  return liveOrders.filter((o) => o.symbol === symbol);
 }
 
 export function useAllOrders({ symbol, refreshingTag }: { symbol: string; refreshingTag: boolean }) {
@@ -99,6 +99,7 @@ export function useAllOrders({ symbol, refreshingTag }: { symbol: string; refres
         accountId,
         OrderProps: {
           size: 200,
+          symbol,
         },
       });
 

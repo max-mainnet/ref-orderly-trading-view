@@ -164,7 +164,19 @@ export const useOrderlyMarketData = ({ symbol }: { symbol: string }) => {
 
       if (!id) return;
 
-      if (preSubScription.has(id + '|' + symbol)) return;
+      if (preSubScription.has(id + '|' + symbol)) {
+        // unsubscribe
+
+        if ('unsubscribe' in msg) {
+          sendMessage(
+            JSON.stringify({
+              ...msg,
+              event: 'unsubscribe',
+            })
+          );
+          preSubScription.delete(id + '|' + symbol);
+        }
+      }
 
       preSubScription.set(id + '|' + symbol, msg);
 
@@ -248,10 +260,7 @@ export const useOrderlyMarketData = ({ symbol }: { symbol: string }) => {
     if (lastJsonMessage?.topic === 'tickers') {
       const tickers = lastJsonMessage.data;
 
-      console.log('tickers: ', tickers);
       setAllTickers(tickers);
-
-      console.log('tickers: ', tickers);
 
       const ticker = tickers.find((t: Ticker) => t.symbol === symbol);
 
@@ -263,7 +272,7 @@ export const useOrderlyMarketData = ({ symbol }: { symbol: string }) => {
 
       setMarkPrices(markPrices);
     }
-  }, [lastJsonMessage]);
+  }, [lastJsonMessage, symbol]);
 
   return {
     lastJsonMessage,

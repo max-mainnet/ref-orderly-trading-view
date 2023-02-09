@@ -81,8 +81,10 @@ function UserBoard() {
   const [holdings, setHoldings] = useState<Holding[]>();
 
   const idFrom = tokenInfo && tokenInfo.find((t) => t.token === symbolFrom)?.token_account_id;
+  console.log('idFrom: ', idFrom);
 
   const idTo = tokenInfo && tokenInfo.find((t) => t.token === symbolTo)?.token_account_id;
+  console.log('idTo: ', idTo);
 
   const [operationId, setOperationId] = useState<string>(idFrom || '');
 
@@ -139,7 +141,7 @@ function UserBoard() {
         setIconIn(res.icon);
       });
     }
-  }, [idFrom]);
+  }, [idFrom, symbol]);
 
   useEffect(() => {
     if (!idTo) return;
@@ -151,7 +153,7 @@ function UserBoard() {
         setIconOut(res.icon);
       });
     }
-  }, [idTo]);
+  }, [idTo, symbol]);
 
   const tokenInHolding = (balances && balances[symbolFrom]?.holding) || (holdings && holdings.find((h) => h.token === symbolFrom)?.holding);
 
@@ -318,7 +320,7 @@ function UserBoard() {
         <div className='justify-self-start'>{!!tokenFromBalance ? digitWrapper(tokenFromBalance, 2) : '-'}</div>
 
         <div className='flex items-center justify-self-end'>
-          <span>{tokenInHolding ? tokenInHolding.toFixed(2) : null}</span>
+          <span>{tokenInHolding ? tokenInHolding.toFixed(2) : 0}</span>
         </div>
       </div>
 
@@ -331,7 +333,7 @@ function UserBoard() {
         <div className='justify-self-start'>{!!tokenToBalance ? digitWrapper(tokenToBalance, 2) : ''}</div>
 
         <div className='flex items-center justify-self-end'>
-          <span>{tokenOutHolding ? tokenOutHolding.toFixed(2) : null}</span>
+          <span>{tokenOutHolding ? tokenOutHolding.toFixed(2) : 0}</span>
         </div>
       </div>
 

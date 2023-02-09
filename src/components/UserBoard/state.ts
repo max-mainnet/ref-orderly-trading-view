@@ -8,20 +8,22 @@ export function useTokenBalance(tokenId: string | undefined) {
 
   useEffect(() => {
     if (!tokenId) return;
-    if (tokenId === 'near') {
-      setTokenMeta(nearMetadata);
-    } else
-      getFTmetadata(tokenId).then((meta) => {
-        setTokenMeta(meta);
-      });
+    console.log('tokenId111: ', tokenId);
+
+    getFTmetadata(tokenId).then((meta) => {
+      console.log('meta11: ', meta, tokenId);
+      setTokenMeta(meta);
+    });
   }, [tokenId]);
 
   useEffect(() => {
     if (!tokenId || !tokenMeta) return;
-    ftGetBalance(tokenId).then((balance) => {
+    ftGetBalance(tokenMeta?.id).then((balance) => {
+      console.log('token meta', tokenMeta, tokenId);
+
       setWalletBalance(toReadableNumber(tokenMeta.decimals, balance));
     });
-  }, [tokenId, tokenMeta]);
+  }, [tokenId, tokenMeta?.id]);
 
-  return walletBalance;
+  return !tokenMeta || !tokenId ? '0' : walletBalance;
 }

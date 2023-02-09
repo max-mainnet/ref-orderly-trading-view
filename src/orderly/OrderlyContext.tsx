@@ -56,7 +56,10 @@ const OrderlyContextProvider: React.FC<any> = ({ children }) => {
         ...value,
         ...privateValue,
         symbol,
-        setSymbol,
+        setSymbol: (symbol: string) => {
+          setSymbol(symbol);
+          handlePendingOrderRefreshing();
+        },
         recentTrades,
         tokenInfo,
         allOrders,

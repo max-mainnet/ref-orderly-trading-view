@@ -270,8 +270,6 @@ function OrderLine({ order }: { order: MyOrder }) {
               },
             }).then((res) => {
               if (res.success === true) {
-                console.log('resdelete:', res);
-
                 handlePendingOrderRefreshing();
               }
             });

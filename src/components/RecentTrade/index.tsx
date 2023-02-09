@@ -26,7 +26,7 @@ function RecentTrade() {
 
   return (
     <>
-      <div className='flex mr-4 mb-1 items-center text-xs text-primary justify-between '>
+      <div className='flex px-4 mr-4 mb-1 items-center text-xs text-primary justify-between '>
         <div>
           <span>Price</span>
 
@@ -43,7 +43,7 @@ function RecentTrade() {
       </div>
 
       <section
-        className='overflow-auto text-xs'
+        className='overflow-auto px-4 text-xs'
         style={{
           height: '490px',
         }}
