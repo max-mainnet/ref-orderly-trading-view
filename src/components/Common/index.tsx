@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
 import ReactTooltip from 'react-tooltip';
 import { GrayBgBox, NearIcon, OrderStateOutline, ArrowCurve, OrderSmile } from './Icons';
 import { useTokenMetaFromSymbol } from '../ChartHeader/state';
@@ -292,8 +292,46 @@ export function WithdrawButton(props: any) {
   );
 }
 
-export function MyOrderTip({ price, quantity }: { price: number; quantity: number }) {
+export function MyOrderTip({
+  price,
+  quantity,
+  scrollTagID,
+}: {
+  price: number;
+  quantity: number;
+  scrollTagID: 'buy-order-book-panel' | 'sell-order-book-panel';
+}) {
   const [showDetail, setShowDetail] = useState(false);
+
+  const id = `order-smile-${price}`;
+
+  function getElementTop(element: any) {
+    var actualTop = element.offsetTop;
+    var current = element.offsetParent;
+
+    while (current !== null) {
+      actualTop += current.offsetTop;
+      current = current.offsetParent;
+    }
+
+    return actualTop;
+  }
+
+  function getPosition() {
+    const smileEl = document.getElementById(id);
+
+    const orderEl = document.getElementById(scrollTagID);
+
+    if (!smileEl || !orderEl) return;
+
+    const top = getElementTop(smileEl);
+
+    const scrollTop = orderEl.scrollTop;
+
+    return {
+      top: top - scrollTop + 20,
+    };
+  }
 
   return (
     <div
@@ -304,13 +342,15 @@ export function MyOrderTip({ price, quantity }: { price: number; quantity: numbe
       onMouseLeave={() => {
         setShowDetail(false);
       }}
+      id={id}
     >
       <OrderSmile></OrderSmile>
       {showDetail && (
         <div
-          className='absolute left-0 z-50 top-6 rounded-md border bg-orderTipBg border-border3 p-2 '
+          className='fixed  z-50  rounded-md border bg-orderTipBg border-border3 p-2 '
           style={{
             width: '120px',
+            ...getPosition(),
           }}
         >
           <div className='flex items-center justify-between'>

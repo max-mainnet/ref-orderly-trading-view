@@ -40,9 +40,9 @@ export function ArrowCurve() {
   );
 }
 
-export function OrderSmile() {
+export function OrderSmile(props: any) {
   return (
-    <svg className='relative z-10' width='16' height='14' viewBox='0 0 16 14' fill='none' xmlns='http://www.w3.org/2000/svg'>
+    <svg className='relative z-10' width='16' height='14' viewBox='0 0 16 14' fill='none' xmlns='http://www.w3.org/2000/svg' {...props}>
       <path
         fill-rule='evenodd'
         clip-rule='evenodd'

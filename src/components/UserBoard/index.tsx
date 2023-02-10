@@ -232,7 +232,9 @@ function UserBoard() {
   };
 
   const isInsufficientBalance =
-    side === 'Buy' ? new Big(total === '-' ? '0' : total).gt(tokenOutHolding || '0') : new Big(inputValue || '0').gt(tokenInHolding || '0');
+    side === 'Buy'
+      ? new Big(total === '-' ? '0' : total).gt(tokenOutHolding || '0') || new Big(tokenOutHolding || 0).eq(0)
+      : new Big(inputValue || '0').gt(tokenInHolding || '0');
   return (
     <div className='w-full p-6 relative flex flex-col  border-t border-l border-b h-screen border-boxBorder  bg-black bg-opacity-10'>
       {/* not signed in wrapper */}
@@ -717,17 +719,17 @@ function AssetManagerModal(
 
   function validation() {
     if (type === 'deposit') {
-      if (tokenId === 'near' && new Big(walletBalance || 0).minus(new Big(inputValue ?? '0')).lt(0.25) && walletBalance !== '') {
+      if (tokenId === 'near' && new Big(walletBalance || 0).minus(new Big(inputValue || '0')).lt(0.25) && walletBalance !== '') {
         return false;
       }
 
-      if (tokenId !== 'near' && new Big(walletBalance || 0).minus(new Big(inputValue ?? '0')).lt(0)) {
+      if (tokenId !== 'near' && new Big(walletBalance || 0).minus(new Big(inputValue || '0')).lt(0)) {
         return false;
       }
     }
 
     if (type === 'withdraw') {
-      if (new Big(accountBalance ?? 0).minus(new Big(inputValue ?? '0')).lt(0)) {
+      if (new Big(accountBalance ?? 0).minus(new Big(inputValue || '0')).lt(0)) {
         return false;
       }
     }

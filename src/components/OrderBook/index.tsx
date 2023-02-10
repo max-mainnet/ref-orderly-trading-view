@@ -4,6 +4,7 @@ import RecentTrade from '../RecentTrade';
 
 import { MyOrder, Orders } from '../../orderly/type';
 import { MyOrderTip } from '../Common';
+import { digitWrapper } from '../../utiles';
 
 function parseSymbol(fullName: string) {
   return {
@@ -172,15 +173,21 @@ function OrderBook() {
             {asks?.map((order, i) => {
               return (
                 <>
-                  <div className='relative grid px-4 hover:bg-symbolHover grid-cols-3 mr-2 py-1 justify-items-end' key={'orderbook-ask-' + i}>
+                  <div
+                    className={'relative  grid px-4  hover:bg-symbolHover grid-cols-3 mr-2 py-1 justify-items-end'}
+                    id={`order-id-${order[0]}`}
+                    key={'orderbook-ask-' + i}
+                  >
                     <span className='text-sellRed justify-self-start'>{order[0]}</span>
 
-                    <span className=''>{order[1]}</span>
+                    <span className=''>{digitWrapper(order[1].toString(), 2)}</span>
 
                     <span>{asktotalSize[i][1].toFixed(2)}</span>
 
-                    <div className='absolute left-0 top-1 z-40'>
-                      {pendingOrders && groupMyPendingOrders[order[0]] && <MyOrderTip price={order[0]} quantity={groupMyPendingOrders[order[0]]} />}
+                    <div className='absolute left-0 top-1 z-20'>
+                      {pendingOrders && groupMyPendingOrders[order[0]] && (
+                        <MyOrderTip price={order[0]} scrollTagID='sell-order-book-panel' quantity={groupMyPendingOrders[order[0]]} />
+                      )}
                     </div>
                   </div>
                 </>
@@ -199,19 +206,33 @@ function OrderBook() {
           {/* buy */}
 
           <section
-            className='text-xs overflow-auto overflow-x-visible text-white'
+            className='text-xs overflow-auto  overflow-x-visible text-white'
             style={{
               height: '225px',
             }}
+            id='buy-order-book-panel'
+            onScroll={(e) => {
+              // console.log()
+              const el = document.getElementById('order-smile-2');
+              const el2 = document.getElementById('order-id-2');
+
+              const el3 = document.getElementById('buy-box');
+
+              console.log(el?.scrollTop);
+              console.log(el2?.scrollTop);
+              console.log(el3?.scrollTop);
+            }}
           >
             {bids?.map((order, i) => {
-              if (order[0] === 2.34) console.log('order: ', order, groupMyPendingOrders);
-
               return (
-                <div className='px-4 relative grid grid-cols-3 mr-2 py-1 hover:bg-symbolHover  justify-items-end' key={'orderbook-ask-' + i}>
+                <div
+                  className='px-4 relative grid grid-cols-3 mr-2 py-1 hover:bg-symbolHover  justify-items-end'
+                  key={'orderbook-ask-' + i}
+                  id={`order-id-${order[0]}`}
+                >
                   <span className='text-buyGreen justify-self-start'>{order[0]}</span>
 
-                  <span className=''>{order[1]}</span>
+                  <span className=''>{digitWrapper(order[1].toString(), 2)}</span>
 
                   <span>{bidtotalSize[i][1].toFixed(2)}</span>
 
@@ -221,7 +242,9 @@ function OrderBook() {
                       zIndex: 999 - i,
                     }}
                   >
-                    {pendingOrders && groupMyPendingOrders[order[0]] && <MyOrderTip price={order[0]} quantity={groupMyPendingOrders[order[0]]} />}
+                    {pendingOrders && groupMyPendingOrders[order[0]] && (
+                      <MyOrderTip scrollTagID='buy-order-book-panel' price={order[0]} quantity={groupMyPendingOrders[order[0]]} />
+                    )}
                   </div>
                 </div>
               );
