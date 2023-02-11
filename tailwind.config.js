@@ -61,6 +61,7 @@ module.exports = {
         orderTypeBg: '#344B5C',
         border2: '#25323C',
         border3: '#293844',
+        border4: 'rgba(23, 35, 39, 1)',
         withdrawPurple: '#4627FF',
         warn: '#FFA24D',
         darkBg: '#222F38',
@@ -68,6 +69,7 @@ module.exports = {
         symbolHover: 'rgba(126, 138, 147, 0.15)',
         grayBgLight: 'rgba(126, 138, 147, 0.5)',
         symbolHover2: '#1C272F',
+        symbolHover3: 'rgba(126, 138, 147, 0.1)',
         feeColor: 'rgba(18, 34, 43, 1)',
         errorTip: 'rgba(249, 103, 103, 0.15)',
         textRed: '#FF7575',
@@ -99,6 +101,10 @@ module.exports = {
         '1050px': '1050px',
         54: '13.5rem',
         34: '8.5rem',
+      },
+      height: {
+        vh90: '90vh',
+        p560: '560px',
       },
       maxWidth: {
         '200px': '200px',

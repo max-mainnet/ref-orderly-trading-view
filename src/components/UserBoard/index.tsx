@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useOrderlyContext } from '../../orderly/OrderlyContext';
 import { parseSymbol } from '../RecentTrade/index';
+import { sortBy } from 'lodash';
 import {
   nearMetadata,
   getFTmetadata,
@@ -21,14 +22,19 @@ import { FaMinus, FaPlus } from 'react-icons/fa';
 import Modal from 'react-modal';
 import Big from 'big.js';
 import { IoClose } from 'react-icons/io5';
-
+import { MdArrowDropDown } from 'react-icons/md';
 import { IoIosArrowForward, IoIosArrowDown, IoIosArrowUp } from 'react-icons/io';
 import { toReadableNumber } from '../../orderly/utils';
 import { user_request_withdraw } from '../../orderly/on-chain-api';
 import { CheckBox, ConnectWallet, TipWrapper, WithdrawButton } from '../Common';
 import { orderPopUp, DepositButton } from '../Common/index';
-import { useTokenBalance } from './state';
+import { useTokenBalance, useTokensBalances } from './state';
 import { digitWrapper } from '../../utiles';
+
+import { FiSearch } from 'react-icons/fi';
+import { NearIConSelectModal, OutLinkIcon } from '../Common/Icons';
+
+import { MdKeyboardArrowDown } from 'react-icons/md';
 
 Modal.defaultStyles = {
   overlay: {
@@ -38,9 +44,9 @@ Modal.defaultStyles = {
     right: 0,
     bottom: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    zIndex: 9999,
-    backdropFilter: 'blur(15px)',
-    WebkitBackdropFilter: 'blur(15px)',
+    zIndex: 999,
+    backdropFilter: 'blur(5px)',
+    WebkitBackdropFilter: 'blur(5px)',
     outline: 'none',
   },
   content: {
@@ -54,6 +60,50 @@ Modal.defaultStyles = {
     outline: 'none',
   },
 };
+
+export const TokenLinks = {
+  NEAR: 'https://awesomenear.com/near-protocol',
+  wNEAR: 'https://awesomenear.com/near-protocol',
+  REF: 'https://awesomenear.com/ref-finance',
+  OCT: 'https://awesomenear.com/octopus-network',
+  PARAS: 'https://awesomenear.com/paras',
+  SKYWARD: 'https://awesomenear.com/skyward-finance',
+  FLX: 'https://awesomenear.com/flux',
+  PULSE: 'https://awesomenear.com/pulse',
+  DBIO: 'https://awesomenear.com/debio-network',
+  MYRIA: 'https://awesomenear.com/myriad-social',
+  PXT: 'https://awesomenear.com/cryptoheroes',
+  HAPI: 'https://awesomenear.com/hapi',
+  OIN: 'https://awesomenear.com/oin-finance',
+  ABR: 'https://awesomenear.com/allbridge',
+  '1MIL': 'https://awesomenear.com/1millionnfts',
+  MARMAJ: 'https://awesomenear.com/marmaj-foundation',
+  marmaj: 'https://awesomenear.com/marmaj-foundation',
+  USN: 'https://awesomenear.com/decentral-bank',
+  '1INCH': 'https://awesomenear.com/1inch-network',
+  GRT: 'https://awesomenear.com/the-graph',
+  LINK: 'https://awesomenear.com/chainlink',
+  Cheddar: 'https://awesomenear.com/cheddar-farm',
+  AURORA: 'https://awesomenear.com/aurora-dev',
+  $META: 'https://awesomenear.com/meta-pool',
+  UMINT: 'https://awesomenear.com/youminter',
+  UTO: 'https://awesomenear.com/secret-skellies-society',
+  DEIP: 'https://awesomenear.com/deip',
+  WOO: 'https://awesomenear.com/woo-dex',
+  LINEAR: 'https://awesomenear.com/linear-protocol',
+  PEM: 'https://awesomenear.com/pembrock-finance',
+  ATO: 'https://awesomenear.com/atocha-protocol',
+  SEAT: 'https://awesomenear.com/seatlab-nft',
+  FAR: 'https://awesomenear.com/few-and-far',
+  BSTN: 'https://awesomenear.com/bastion',
+  BRRR: 'https://awesomenear.com/burrow',
+  XNL: 'https://awesomenear.com/chronicle',
+  KSW: 'https://awesomenear.com/killswitch-finance',
+  STNEAR: 'https://awesomenear.com/meta-pool',
+  NearX: 'https://awesomenear.com/stader',
+  SD: 'https://awesomenear.com/stader',
+  DISC: 'https://awesomenear.com/discovol',
+} as Record<string, string>;
 
 const symbolsArr = ['e', 'E', '+', '-'];
 
@@ -81,10 +131,12 @@ function UserBoard() {
   const [holdings, setHoldings] = useState<Holding[]>();
 
   const idFrom = tokenInfo && tokenInfo.find((t) => t.token === symbolFrom)?.token_account_id;
+  console.log('idFrom: ', idFrom);
 
   const idTo = tokenInfo && tokenInfo.find((t) => t.token === symbolTo)?.token_account_id;
 
   const [operationId, setOperationId] = useState<string>(idFrom || '');
+  console.log('operationId: ', operationId);
 
   const [iconIn, setIconIn] = useState<string>();
 
@@ -622,6 +674,7 @@ function UserBoard() {
         }}
         tokenId={operationId}
         accountBalance={tokenInHolding || 0}
+        tokenInfo={tokenInfo}
       />
 
       <AssetManagerModal
@@ -636,6 +689,7 @@ function UserBoard() {
         }}
         tokenId={operationId}
         accountBalance={tokenInHolding || 0}
+        tokenInfo={tokenInfo}
       />
 
       <ConfirmOrderModal
@@ -663,9 +717,19 @@ function AssetManagerModal(
     tokenId: string | undefined;
     accountBalance: number;
     standAlone?: boolean;
+    tokenInfo: TokenInfo[] | undefined;
   }
 ) {
-  const { onClick, isOpen, onRequestClose, type, tokenId, accountBalance } = props;
+  const { onClick, onRequestClose, type, tokenId: tokenIdProp, accountBalance } = props;
+  console.log('tokenIdProp: ', tokenIdProp);
+
+  const [tokenId, setTokenId] = useState<string | undefined>(tokenIdProp);
+
+  useEffect(() => {
+    setTokenId(tokenIdProp);
+  }, [tokenIdProp]);
+
+  const [showSelectToken, setShowSelectToken] = useState<boolean>(false);
 
   const [walletBalance, setWalletBalance] = useState<string>('');
 
@@ -674,6 +738,8 @@ function AssetManagerModal(
   const [percentage, setPercentage] = useState<string>('0');
 
   const progressBarIndex = [0, 25, 50, 75, 100];
+
+  const [hoverToken, setHoverToken] = useState<boolean>(false);
 
   useEffect(() => {
     if (!tokenId) return;
@@ -729,7 +795,7 @@ function AssetManagerModal(
     }
 
     if (type === 'withdraw') {
-      if (new Big(accountBalance ?? 0).minus(new Big(inputValue || '0')).lt(0)) {
+      if (new Big(accountBalance || 0).minus(new Big(inputValue || '0')).lt(0)) {
         return false;
       }
     }
@@ -738,11 +804,231 @@ function AssetManagerModal(
   }
 
   return (
+    <>
+      <Modal {...props}>
+        <div className=' rounded-2xl lg:w-96 xs:w-95vw gradientBorderWrapperNoShadow bg-boxBorder text-sm text-primary border '>
+          <div className='px-5 py-6 flex flex-col '>
+            <div className='flex items-center pb-6 justify-between'>
+              <span className='text-white text-lg font-bold'>
+                {props.type === 'deposit' ? 'Deposit' : props.type === 'withdraw' ? 'Withdraw' : ''}
+              </span>
+
+              <span
+                className='cursor-pointer '
+                onClick={(e: any) => {
+                  onRequestClose && onRequestClose(e);
+                }}
+              >
+                <IoClose size={20} />
+              </span>
+            </div>
+
+            <div className='flex items-center pb-3 justify-between'>
+              <span>Wallet Balance</span>
+
+              <span>{!walletBalance ? '-' : toPrecision(walletBalance || '0', 3)}</span>
+            </div>
+
+            <div className='flex items-center pb-4 justify-between'>
+              <span>Account Balance</span>
+
+              <span>{accountBalance.toFixed(3)}</span>
+            </div>
+
+            <div className='flex mb-5 items-center border border-border2 w-full bg-black bg-opacity-10 rounded-2xl px-3 py-3'>
+              <input
+                inputMode='decimal'
+                ref={ref}
+                onWheel={(e) => (ref.current ? ref.current.blur() : null)}
+                className='text-white text-xl w-full'
+                value={inputValue}
+                type='number'
+                step='any'
+                min={0}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setInputValue(e.target.value);
+
+                  const percentage =
+                    Number(type === 'deposit' ? walletBalance : accountBalance) > 0
+                      ? percent(value || '0', type === 'deposit' ? walletBalance : accountBalance.toString()).toString()
+                      : '0';
+                  setPercentage(scientificNotationToString(percentage));
+                }}
+                onKeyDown={(e) => symbolsArr.includes(e.key) && e.preventDefault()}
+              />
+
+              <div
+                className='rounded-3xl p-1  hover:bg-symbolHover3 cursor-pointer flex flex-shrink-0 pr-2 items-center'
+                style={{
+                  background: hoverToken ? 'rgba(126, 138, 147, 0.1)' : '',
+                }}
+                onMouseEnter={() => {
+                  setHoverToken(true);
+                }}
+                onMouseLeave={() => {
+                  setHoverToken(false);
+                }}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowSelectToken(true);
+                }}
+              >
+                <img src={tokenMeta.icon} className='rounded-full w-6 h-6 mr-2' alt='' />
+                <span className='text-white font-bold text-base'>{tokenMeta.symbol}</span>
+                <MdKeyboardArrowDown size={20} />
+              </div>
+            </div>
+
+            <div className='pb-8'>
+              <div className='flex items-center justify-between  px-1.5 '>
+                {progressBarIndex.map((index, i) => {
+                  return (
+                    <div
+                      className='flex flex-col items-center text-xs cursor-pointer w-4'
+                      key={i}
+                      onClick={() => {
+                        setAmountByShareFromBar(index.toString());
+                      }}
+                    >
+                      <span>{index}%</span>
+                      <span>∣</span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className='py-1 px-1 relative'>
+                <input
+                  ref={rangeRef}
+                  onChange={(e) => {
+                    setAmountByShareFromBar(e.target.value);
+                  }}
+                  value={percentage}
+                  type='range'
+                  className={`w-full cursor-pointer ${type + '-bar'} remove-by-share-bar`}
+                  min='0'
+                  max='100'
+                  step='any'
+                  inputMode='decimal'
+                  style={{
+                    backgroundSize: `${percentage}% 100%`,
+                  }}
+                />
+
+                <div
+                  className={`rangeText rounded-lg absolute py-0.5 text-xs ${
+                    type === 'withdraw' ? 'text-white' : 'text-black'
+                  }  font-bold text-center w-10`}
+                  style={{
+                    background: type === 'withdraw' ? '#4627FF' : '#00C6A2',
+                    left: `calc(${percentage}% - 40px * ${percentage} / 100)`,
+                    position: 'absolute',
+                    top: '20px',
+                  }}
+                >
+                  {Math.floor(Number(percentage))}%
+                </div>
+              </div>
+            </div>
+            {type === 'deposit' && !validation() && <div className='text-warn mb-2'>0.25 NEAR locked in wallet for covering transaction fee</div>}
+
+            <button
+              className={`flex ${
+                !validation() ? 'opacity-70 cursor-not-allowed' : ''
+              } items-center justify-center  font-bold text-base text-white py-2.5 rounded-lg ${
+                type === 'deposit' ? 'bg-primaryGradient' : 'bg-withdrawPurple'
+              }`}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (!inputValue) return;
+                onClick(inputValue);
+              }}
+              disabled={!validation()}
+            >
+              {type === 'deposit' ? 'Deposit' : type === 'withdraw' ? 'Withdraw' : ''}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      <SelectTokenModal
+        onSelect={setTokenId}
+        isOpen={showSelectToken}
+        onRequestClose={() => {
+          setShowSelectToken(false);
+        }}
+        tokenInfo={props.tokenInfo}
+        style={{
+          overlay: {
+            zIndex: 1000,
+          },
+        }}
+      />
+    </>
+  );
+}
+
+function SelectTokenModal(
+  props: Modal.Props & {
+    onSelect: (tokenId: string) => void;
+    tokenInfo: TokenInfo[] | undefined;
+  }
+) {
+  const { onRequestClose, onSelect, tokenInfo } = props;
+
+  const [sortOrderlyAccount, setSortOrderlyAccount] = useState<'asc' | 'desc'>();
+
+  const [sortNearBalance, setSortNearBalance] = useState<'asc' | 'desc'>('desc');
+
+  const [searchValue, setSearchValue] = useState<string>('');
+
+  const [sortByBalance, setSortByBalance] = useState<'wallet' | 'orderly'>();
+
+  const balances = useTokensBalances(
+    tokenInfo?.map((token) => {
+      return {
+        id: token.token_account_id,
+        decimals: token.decimals,
+      };
+    }) || [],
+    tokenInfo
+  );
+
+  const sortingFunc = (a: any, b: any) => {
+    if (sortByBalance === 'wallet' || sortByBalance === undefined) {
+      if (sortNearBalance === undefined || sortNearBalance === 'desc') {
+        return b.wallet_balance - a.wallet_balance;
+      } else {
+        return a.wallet_balance - b.wallet_balance;
+      }
+    } else {
+      if (sortOrderlyAccount === undefined || sortOrderlyAccount === 'desc') {
+        return b.holding - a.holding;
+      } else {
+        return a.holding - b.holding;
+      }
+    }
+  };
+
+  const filterFunc = (token: any) => {
+    const id = token.id.toLowerCase();
+
+    const name = token.name.toLowerCase();
+
+    return !searchValue || id.includes(searchValue.toLowerCase()) || name?.includes(searchValue.toLowerCase());
+  };
+
+  if (!tokenInfo) return null;
+
+  return (
     <Modal {...props}>
-      <div className=' rounded-2xl lg:w-96 xs:w-95vw gradientBorderWrapperNoShadow bg-boxBorder text-sm text-primary border '>
-        <div className='px-5 py-6 flex flex-col '>
-          <div className='flex items-center pb-6 justify-between'>
-            <span className='text-white text-lg font-bold'>{props.type === 'deposit' ? 'Deposit' : props.type === 'withdraw' ? 'Withdraw' : ''}</span>
+      <div className=' rounded-2xl lg:w-96 xs:w-95vw xs:h-vh90 lg:h-p560  gradientBorderWrapperNoShadow bg-boxBorder text-sm text-primary border '>
+        <div className=' py-6 text-primary text-sm flex flex-col '>
+          <div className='flex px-5 items-center pb-6 justify-between'>
+            <span className='text-white text-lg font-bold'>Select Token</span>
 
             <span
               className='cursor-pointer '
@@ -753,123 +1039,118 @@ function AssetManagerModal(
               <IoClose size={20} />
             </span>
           </div>
+          <div className='w-full px-5'>
+            <div className='w-full  mb-4 pl-2 py-3 flex items-center rounded-lg bg-black bg-opacity-20 border border-border4'>
+              <span className='mr-2'>
+                <FiSearch className={!!searchValue ? 'text-white' : ''} />
+              </span>
 
-          <div className='flex items-center pb-3 justify-between'>
-            <span>Wallet Balance</span>
-
-            <span>{!walletBalance ? '-' : toPrecision(walletBalance || '0', 3)}</span>
-          </div>
-
-          <div className='flex items-center pb-4 justify-between'>
-            <span>Account Balance</span>
-
-            <span>{accountBalance.toFixed(3)}</span>
-          </div>
-
-          <div className='flex mb-5 items-center border border-border2 w-full bg-black bg-opacity-10 rounded-2xl px-3 py-3'>
-            <input
-              inputMode='decimal'
-              ref={ref}
-              onWheel={(e) => (ref.current ? ref.current.blur() : null)}
-              className='text-white text-xl w-full'
-              value={inputValue}
-              type='number'
-              step='any'
-              min={0}
-              onChange={(e) => {
-                const value = e.target.value;
-                setInputValue(e.target.value);
-
-                const percentage =
-                  Number(type === 'deposit' ? walletBalance : accountBalance) > 0
-                    ? percent(value || '0', type === 'deposit' ? walletBalance : accountBalance.toString()).toString()
-                    : '0';
-                setPercentage(scientificNotationToString(percentage));
-              }}
-              onKeyDown={(e) => symbolsArr.includes(e.key) && e.preventDefault()}
-            />
-
-            <div
-              className='rounded-3xl p-1 flex flex-shrink-0 pr-2 items-center'
-              style={{
-                background: 'rgba(126, 138, 147, 0.1)',
-              }}
-            >
-              <img src={tokenMeta.icon} className='rounded-full w-6 h-6 mr-2' alt='' />
-              <span className='text-white font-bold text-base'>{tokenMeta.symbol}</span>
+              <input
+                type='text'
+                className='w-full'
+                value={searchValue}
+                onChange={(e) => {
+                  setSearchValue(e.target.value);
+                }}
+                placeholder='Search token'
+              ></input>
             </div>
           </div>
 
-          <div className='pb-8'>
-            <div className='flex items-center justify-between  px-1.5 '>
-              {progressBarIndex.map((index, i) => {
+          <div className='grid px-5  grid-cols-3'>
+            <div className='justify-self-start'>Asset</div>
+
+            <div
+              className='justify-self-center flex items-center cursor-pointer'
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (sortNearBalance === 'asc' || sortNearBalance === undefined) {
+                  setSortNearBalance('desc');
+                } else {
+                  setSortNearBalance('asc');
+                }
+
+                setSortByBalance('wallet');
+              }}
+            >
+              <NearIConSelectModal />
+
+              <span className='ml-2'>Wallet</span>
+
+              <MdArrowDropDown
+                size={22}
+                className={`${sortByBalance === 'wallet' && sortNearBalance === 'asc' ? 'transform rotate-180 ' : ''} ${
+                  sortByBalance === 'wallet' && sortNearBalance !== undefined ? 'text-white' : ''
+                } cursor-pointer`}
+              />
+            </div>
+
+            <div
+              className='justify-self-end flex items-center cursor-pointer'
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (sortOrderlyAccount === 'asc' || sortOrderlyAccount === undefined) {
+                  setSortOrderlyAccount('desc');
+                } else {
+                  setSortOrderlyAccount('asc');
+                }
+
+                setSortByBalance('orderly');
+              }}
+            >
+              <span className='ml-2 '>Account</span>
+
+              <MdArrowDropDown
+                size={22}
+                className={`${sortByBalance === 'orderly' && sortOrderlyAccount === 'asc' ? 'transform rotate-180 ' : ''} cursor-pointer ${
+                  sortByBalance === 'orderly' && sortOrderlyAccount !== undefined ? 'text-white' : ''
+                }`}
+              />
+            </div>
+          </div>
+
+          <div className='h-full overflow-auto'>
+            {balances
+              .filter(filterFunc)
+              .sort(sortingFunc)
+              .map((b: any) => {
                 return (
                   <div
-                    className='flex flex-col items-center text-xs cursor-pointer w-4'
-                    key={i}
-                    onClick={() => {
-                      setAmountByShareFromBar(index.toString());
+                    className='grid grid-cols-3 p-3 px-5 hover:bg-white hover:bg-opacity-5 text-white cursor-pointer'
+                    onClick={(e: any) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      onSelect(b.id);
+                      onRequestClose && onRequestClose(e);
                     }}
                   >
-                    <span>{index}%</span>
-                    <span>∣</span>
+                    <div className='flex items-center  justify-self-start'>
+                      <img src={b.meta.icon} alt='' className='w-6 h-6 rounded-full' />
+
+                      <span className='ml-2 mr-3'>{tokenInfo.find((t: any) => t.token_account_id === b.id)?.token || ''}</span>
+
+                      {TokenLinks[b.name] ? (
+                        <a
+                          className='ml-1.5'
+                          onClick={(e) => {
+                            e.stopPropagation();
+                          }}
+                          href={TokenLinks[b.name]}
+                        >
+                          <OutLinkIcon className='text-primary hover:text-white cursor-pointer'></OutLinkIcon>
+                        </a>
+                      ) : null}
+                    </div>
+
+                    <div className='flex items-center justify-self-end relative right-6'>{digitWrapper(b.wallet_balance.toString(), 2)}</div>
+
+                    <div className='justify-self-end flex relative right-4 items-center'>{digitWrapper(b.holding.toString(), 2)}</div>
                   </div>
                 );
               })}
-            </div>
-
-            <div className='py-1 px-1 relative'>
-              <input
-                ref={rangeRef}
-                onChange={(e) => {
-                  setAmountByShareFromBar(e.target.value);
-                }}
-                value={percentage}
-                type='range'
-                className={`w-full cursor-pointer ${type + '-bar'} remove-by-share-bar`}
-                min='0'
-                max='100'
-                step='any'
-                inputMode='decimal'
-                style={{
-                  backgroundSize: `${percentage}% 100%`,
-                }}
-              />
-
-              <div
-                className={`rangeText rounded-lg absolute py-0.5 text-xs ${
-                  type === 'withdraw' ? 'text-white' : 'text-black'
-                }  font-bold text-center w-10`}
-                style={{
-                  background: type === 'withdraw' ? '#4627FF' : '#00C6A2',
-                  left: `calc(${percentage}% - 40px * ${percentage} / 100)`,
-                  //   transform: `translateX(-${Number(percentage)}%)`,
-                  position: 'absolute',
-                  top: '20px',
-                }}
-              >
-                {Math.floor(Number(percentage))}%
-              </div>
-            </div>
           </div>
-          {type === 'deposit' && !validation() && <div className='text-warn mb-2'>0.25 NEAR locked in wallet for covering transaction fee</div>}
-
-          <button
-            className={`flex ${
-              !validation() ? 'opacity-70 cursor-not-allowed' : ''
-            } items-center justify-center  font-bold text-base text-white py-2.5 rounded-lg ${
-              type === 'deposit' ? 'bg-primaryGradient' : 'bg-withdrawPurple'
-            }`}
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              if (!inputValue) return;
-              onClick(inputValue);
-            }}
-            disabled={!validation()}
-          >
-            {type === 'deposit' ? 'Deposit' : type === 'withdraw' ? 'Withdraw' : ''}
-          </button>
         </div>
       </div>
     </Modal>

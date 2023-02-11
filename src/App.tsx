@@ -5,7 +5,6 @@ import { ToastContainer } from 'react-toastify';
 import { version } from './charting_library';
 import { WalletSelectorContextProvider } from './WalletSelectorContext';
 import OrderlyContextProvider from './orderly/OrderlyContext';
-import RecentTrade from './components/RecentTrade';
 import OrderBook from './components/OrderBook';
 import ChartHeader from './components/ChartHeader';
 import UserBoard from './components/UserBoard';

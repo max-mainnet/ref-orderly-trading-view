@@ -54,7 +54,6 @@ export class TVChartContainer extends React.PureComponent<Partial<ChartContainer
     if (!this.ref.current) {
       return;
     }
-
     const widgetOptions: ChartingLibraryWidgetOptions = {
       symbol: this.props.symbol as string,
       // BEWARE: no trailing slash is expected in feed URL
@@ -70,7 +69,6 @@ export class TVChartContainer extends React.PureComponent<Partial<ChartContainer
       charts_storage_url: this.props.chartsStorageUrl,
       charts_storage_api_version: this.props.chartsStorageApiVersion,
       client_id: this.props.clientId,
-
       user_id: ' this.props.userId',
       fullscreen: this.props.fullscreen,
       autosize: this.props.autosize,
@@ -133,8 +131,6 @@ export function ChartContainer() {
       'paneProperties.backgroundType': 'solid', // or "gradient"
     },
   };
-
-  console.log(Intl.DateTimeFormat().resolvedOptions().timeZone);
 
   React.useEffect(() => {
     const tvWidget = new widget(widgetOptions);

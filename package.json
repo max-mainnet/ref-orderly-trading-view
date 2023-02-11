@@ -1,7 +1,6 @@
 {
-  "name": "ref-orderly",
+  "name": "ref-orderly-test",
   "version": "0.1.0",
-  "private": true,
   "dependencies": {
     "@near-wallet-selector/core": "^7.0.0",
     "@near-wallet-selector/modal-ui": "^7.0.0",
@@ -20,6 +19,7 @@
     "bs58": "^5.0.0",
     "elliptic": "^6.5.4",
     "keccak256": "^1.0.6",
+    "lodash": "4.17.21",
     "mathjs": "^9.3.0",
     "moment": "^2.29.4",
     "near-api-js": "0.44.2",
@@ -43,6 +43,7 @@
   "devDependencies": {
     "@types/big.js": "^6.1.2",
     "@types/elliptic": "^6.4.14",
+    "@types/lodash": "^4.14.191",
     "@types/react-modal": "^3.12.0",
     "@types/react-toastify": "^4.1.0",
     "buffer": "^5.5.0",
