@@ -79,3 +79,42 @@ export function OutLinkIcon(props: any) {
     </svg>
   );
 }
+
+export function SpinIcon() {
+  return (
+    <svg width='14' className='animate-spin' height='14' viewBox='0 0 14 14' fill='none' xmlns='http://www.w3.org/2000/svg'>
+      <path
+        d='M13 7C13 3.68629 10.3137 1 7 1C3.68629 1 1 3.68629 1 7C1 10.3137 3.68629 13 7 13'
+        stroke='white'
+        stroke-width='2'
+        stroke-linecap='round'
+      />
+    </svg>
+  );
+}
+
+export function CheckedFlow() {
+  return (
+    <div className='inline-flex items-center relative justify-center'>
+      <svg width='12' className='absolute z-10' height='12' viewBox='0 0 12 12' fill='none' xmlns='http://www.w3.org/2000/svg'>
+        <circle cx='6' cy='6' r='5.5' fill='#00C6A2' stroke='#00C6A2' />
+      </svg>
+
+      <svg width='8' height='7' className='relative z-20' viewBox='0 0 8 7' fill='none' xmlns='http://www.w3.org/2000/svg'>
+        <path d='M1 3L3 5L7 1' stroke='#031420' stroke-width='1.6' stroke-linecap='round' />
+      </svg>
+    </div>
+  );
+}
+
+export function UnCheckedFlow() {
+  return (
+    <svg width='12' height='12' viewBox='0 0 12 12' fill='none' xmlns='http://www.w3.org/2000/svg'>
+      <circle cx='6' cy='6' r='5.5' fill='white' fill-opacity='0.08' stroke='#00C6A2' />
+    </svg>
+  );
+}
+
+export function CheckFlow({ checked }: { checked: boolean }) {
+  return checked ? <CheckedFlow /> : <UnCheckedFlow />;
+}

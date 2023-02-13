@@ -1,10 +1,12 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useOrderlyContext } from '../../orderly/OrderlyContext';
 import RecentTrade from '../RecentTrade';
 
 import { MyOrder, Orders } from '../../orderly/type';
 import { MyOrderTip } from '../Common';
 import { digitWrapper } from '../../utiles';
+import { MdArrowDropDown, MdArrowDropUp } from 'react-icons/md';
+import { Selector } from '../OrderBoard';
 
 function parseSymbol(fullName: string) {
   return {
@@ -104,10 +106,20 @@ function groupOrdersByPrecision({ orders, precision, pendingOrders }: { orders: 
   };
 }
 
+function getPrecisionStringByNumber(precision: number) {
+  if (precision === 0) {
+    return '1';
+  } else {
+    return '0.' + '0'.repeat(precision - 1) + '1';
+  }
+}
+
 function OrderBook() {
   const { orders, marketTrade, symbol, pendingOrders } = useOrderlyContext();
 
   const [precision, setPrecision] = useState<number>(2);
+
+  const [showPrecisionSelector, setShowPrecisionSelector] = useState<boolean>(false);
 
   const { asks, bids, asktotalSize, bidtotalSize, groupMyPendingOrders } = groupOrdersByPrecision({
     orders,
@@ -125,7 +137,7 @@ function OrderBook() {
         height: '570px',
       }}
     >
-      <div className='px-4 flex mb-2 border-b border-white border-opacity-10 items-center '>
+      <div className='px-4 relative flex mb-2 border-b border-white border-opacity-10 items-center '>
         <div
           onClick={() => {
             setTab('book');
@@ -141,6 +153,49 @@ function OrderBook() {
           className={`cursor-pointer text-left ${tab === 'recent' ? 'text-white' : 'text-primary'} ml-3 font-bold mb-1`}
         >
           Recent Trade
+        </div>
+
+        <div
+          className='max-w-fit min-w-p72 cursor-pointer rounded-md bg-symbolHover pl-2 absolute   right-4 bottom-1 text-white flex justify-center items-center'
+          onClick={() => {
+            setShowPrecisionSelector(!showPrecisionSelector);
+          }}
+        >
+          <span className='relative right-2'>{getPrecisionStringByNumber(precision)}</span>
+
+          <MdArrowDropDown size={22} className='text-primary absolute right-0 justify-self-end'></MdArrowDropDown>
+          {showPrecisionSelector && (
+            <Selector
+              selected={getPrecisionStringByNumber(precision).toString()}
+              setSelect={(textId: string) => {
+                setPrecision(parseInt(textId));
+                setShowPrecisionSelector(false);
+              }}
+              className=' min-w-p72 -left-2 top-1 relative'
+              list={[
+                {
+                  text: '0.0001',
+                  textId: '4',
+                },
+                {
+                  text: '0.001',
+                  textId: '3',
+                },
+                {
+                  text: '0.01',
+                  textId: '2',
+                },
+                {
+                  text: '0.1',
+                  textId: '1',
+                },
+                {
+                  text: '1',
+                  textId: '0',
+                },
+              ]}
+            />
+          )}
         </div>
       </div>
 

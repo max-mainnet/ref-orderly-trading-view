@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState, useRef } from 'react';
 import ReactTooltip from 'react-tooltip';
-import { GrayBgBox, NearIcon, OrderStateOutline, ArrowCurve, OrderSmile } from './Icons';
+import { GrayBgBox, NearIcon, OrderStateOutline, ArrowCurve, OrderSmile, SpinIcon, CheckFlow } from './Icons';
 import { useTokenMetaFromSymbol } from '../ChartHeader/state';
 import { useOrderlyContext } from '../../orderly/OrderlyContext';
 import { parseFullSymbol } from '../../datafeed/helpers';
@@ -122,8 +122,7 @@ export function ErrorTip({ text }: { text: string }) {
 export function ConnectWallet({ onClick }: { onClick: () => void }) {
   return (
     <button
-      className='text-base min-w-fit py-3 px-10 absolute  top-1/3 bg-buyGradientGreen rounded-lg text-white font-bold flex items-center justify-center
-    
+      className='text-base min-w-fit py-3 px-10 relative w-p240  bg-buyGradientGreen rounded-lg text-white font-bold flex items-center justify-center
       
     '
       onClick={(e) => {
@@ -136,6 +135,78 @@ export function ConnectWallet({ onClick }: { onClick: () => void }) {
 
       <span className='whitespace-nowrap ml-3  hover:bg-'>Connect Wallet</span>
     </button>
+  );
+}
+
+export function ConfirmButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      className='text-base min-w-fit py-3 px-10 relative w-p240  bg-buyGradientGreen rounded-lg text-white font-bold flex items-center justify-center
+      
+    '
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onClick();
+      }}
+    >
+      <span className='whitespace-nowrap ml-3  hover:bg-'>Confirm</span>
+    </button>
+  );
+}
+
+export function RegisterButton({ onClick, storageEnough, spin }: { onClick: () => void; spin?: boolean; storageEnough: boolean }) {
+  const [spinNow, setSpinNow] = useState<boolean>(!!spin);
+
+  useEffect(() => {
+    setSpinNow(!!spin);
+  }, [spin]);
+
+  return (
+    <div className='flex flex-col items-center relative bottom-6'>
+      <div className='flex items-start text-sm relative text-white flex-col'>
+        <div className='relative mb-3 flex items-center'>
+          <div className='mr-2'>
+            <CheckFlow checked={!!storageEnough}></CheckFlow>
+          </div>
+
+          <div>Deposit storage fee</div>
+        </div>
+
+        <div className='relative flex mb-5 items-center'>
+          <div className='mr-2'>
+            <CheckFlow checked={false}></CheckFlow>
+          </div>
+
+          <div>Register Orderly Account</div>
+        </div>
+
+        <div
+          className='w-4 transform rotate-90 absolute top-6'
+          style={{
+            border: '1px dashed #566069 ',
+            left: '-2px',
+          }}
+        ></div>
+      </div>
+
+      <button
+        className={`text-base min-w-fit py-3 px-10 relative w-p240 ${
+          spinNow ? 'opacity-30' : ''
+        } bg-buyGradientGreen rounded-lg text-white font-bold flex items-center justify-center
+      
+    `}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setSpinNow(true);
+          onClick();
+        }}
+      >
+        {spinNow && <SpinIcon />}
+        <span className={`whitespace-nowrap ml-3  `}>Register</span>
+      </button>
+    </div>
   );
 }
 

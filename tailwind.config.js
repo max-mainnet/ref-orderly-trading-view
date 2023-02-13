@@ -19,6 +19,8 @@ module.exports = {
         redGradient: 'linear-gradient(270deg, #7F43FF 0%, #FF8B8B 97.06%)',
         sellGradientRed: 'linear-gradient(180deg, #944A8C 0%, #D26060 100%)',
         buyGradientGreen: 'linear-gradient(180deg, #00C6A2 0%, #008B72 100%)',
+        buyGradientGreenOpacity: 'linear-gradient(180deg,rgba(0,198,162,0.3) 0%, rgba(0,139,114,0.3) 100%)',
+
         veReverseGradient: 'linear-gradient(270deg, rgba(127, 67, 255, 0.3) 0%, rgba(0, 198, 162, 0.3) 97.06%)',
         veCardGradientRight: 'linear-gradient(270deg, #001320 0%, #1D2932 95.06%)',
         veUserCard: 'linear-gradient(270deg, #001320 0%, #1D2932 95.06%);',
@@ -98,6 +100,8 @@ module.exports = {
         smartRoute: '292px',
         '1000px': '1000px',
         '1024px': '1024px',
+        p70: '70px',
+
         '1050px': '1050px',
         54: '13.5rem',
         34: '8.5rem',
@@ -119,6 +123,7 @@ module.exports = {
         p360: '360px',
       },
       minWidth: {
+        p72: '72px',
         20: '5rem',
         28: '7rem',
         72: '18rem',

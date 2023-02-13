@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Trade, TokenInfo, MyOrder, MarketTrade, Orders } from './type';
 import { getMarketTrades, getOrderlyPublic, getOpenOrders, getAllOrders } from './off-chain-api';
 import { useWalletSelector } from '../WalletSelectorContext';
+import { checkStorageDeposit } from './api';
 
 const useIntervalAsync = <R = unknown>(fn: () => Promise<R>, ms: number) => {
   const runningCount = useRef(0);
@@ -124,4 +125,19 @@ export function useTokenInfo() {
   }, []);
 
   return tokenInfo;
+}
+
+export function useStorageEnough() {
+  const { accountId } = useWalletSelector();
+
+  const [storageEnough, setStorageEnough] = useState<boolean | undefined>(undefined);
+
+  useEffect(() => {
+    if (!accountId) setStorageEnough(false);
+    else {
+      checkStorageDeposit(accountId).then(setStorageEnough);
+    }
+  }, [accountId]);
+
+  return storageEnough;
 }

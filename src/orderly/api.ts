@@ -87,6 +87,37 @@ const storageDeposit = async (accountId: string) => {
   return signAndSendTransactions([transaction]);
 };
 
+const checkStorageDeposit = async (accountId: string) => {
+  // const storage_amount = await get_storage_deposit_amount(accountId);
+
+  const functionCallList = [];
+
+  const storage_balance = await storage_balance_of(accountId);
+
+  const min_amount = await storage_balance_bounds();
+
+  const announce_key_amount = await get_cost_of_announce_key();
+
+  // if (storage_amount !== null) {
+  const deposit_functionCall_register = orderly_storage_deposit(accountId, utils.format.formatNearAmount(min_amount.min));
+
+  const deposit_functionCall_announce_key = orderly_storage_deposit(accountId, utils.format.formatNearAmount(announce_key_amount));
+
+  // await account.functionCall(ORDERLY_ASSET_MANAGER, 'storage_deposit', {}, new BN(deposit_functionCall.gas), new BN(deposit_functionCall.));
+
+  if (storage_balance === null || new Big(min_amount.min).gt(new Big(storage_balance.available))) {
+    functionCallList.push(deposit_functionCall_register);
+  }
+
+  if (storage_balance === null) {
+    functionCallList.push(deposit_functionCall_announce_key);
+  }
+
+  if (functionCallList.length === 0) return false;
+
+  return true;
+};
+
 const registerOrderly = async (accountId: string) => {
   // let wsTransactions: WSTransaction[] = [];
 
@@ -180,4 +211,5 @@ export {
   depositNEAR,
   depositFT,
   signAndSendTransaction,
+  checkStorageDeposit,
 };

@@ -26,8 +26,8 @@ import { MdArrowDropDown } from 'react-icons/md';
 import { IoIosArrowForward, IoIosArrowDown, IoIosArrowUp } from 'react-icons/io';
 import { toReadableNumber } from '../../orderly/utils';
 import { user_request_withdraw } from '../../orderly/on-chain-api';
-import { CheckBox, ConnectWallet, TipWrapper, WithdrawButton } from '../Common';
-import { orderPopUp, DepositButton } from '../Common/index';
+import { CheckBox, ConnectWallet, RegisterButton, TipWrapper, WithdrawButton } from '../Common';
+import { orderPopUp, DepositButton, ConfirmButton } from '../Common/index';
 import { useTokenBalance, useTokensBalances } from './state';
 import { digitWrapper } from '../../utiles';
 
@@ -112,8 +112,9 @@ export function TextWrapper({ className, value, bg, textC }: { value: string; bg
 }
 
 function UserBoard() {
-  const { symbol, setSymbol, orders, tokenInfo, ticker, marketTrade, markPrices, balances, handlePendingOrderRefreshing } = useOrderlyContext();
-
+  const { symbol, setSymbol, orders, tokenInfo, ticker, storageEnough, marketTrade, markPrices, balances, handlePendingOrderRefreshing } =
+    useOrderlyContext();
+  console.log('storageEnough: ', storageEnough);
   const { accountId, modal, selector } = useWalletSelector();
 
   const [showLimitAdvance, setShowLimitAdvance] = useState<boolean>(false);
@@ -131,12 +132,10 @@ function UserBoard() {
   const [holdings, setHoldings] = useState<Holding[]>();
 
   const idFrom = tokenInfo && tokenInfo.find((t) => t.token === symbolFrom)?.token_account_id;
-  console.log('idFrom: ', idFrom);
 
   const idTo = tokenInfo && tokenInfo.find((t) => t.token === symbolTo)?.token_account_id;
 
   const [operationId, setOperationId] = useState<string>(idFrom || '');
-  console.log('operationId: ', operationId);
 
   const [iconIn, setIconIn] = useState<string>();
 
@@ -287,22 +286,48 @@ function UserBoard() {
     side === 'Buy'
       ? new Big(total === '-' ? '0' : total).gt(tokenOutHolding || '0') || new Big(tokenOutHolding || 0).eq(0)
       : new Big(inputValue || '0').gt(tokenInHolding || '0');
+
+  const validator = !!accountId && !!storageEnough;
+
   return (
     <div className='w-full p-6 relative flex flex-col  border-t border-l border-b h-screen border-boxBorder  bg-black bg-opacity-10'>
       {/* not signed in wrapper */}
-      {!accountId && (
+      {!validator && (
         <div
-          className='absolute  flex flex-col items-center h-full w-full top-0 left-0 z-50 '
+          className='absolute  flex flex-col justify-center items-center h-full w-full top-0 left-0 z-50 '
           style={{
             background: 'rgba(0, 19, 32, 0.8)',
             backdropFilter: 'blur(5px)',
           }}
         >
-          <ConnectWallet
-            onClick={() => {
-              modal.show();
-            }}
-          ></ConnectWallet>
+          {!accountId && (
+            <ConnectWallet
+              onClick={() => {
+                modal.show();
+              }}
+            ></ConnectWallet>
+          )}
+
+          {/* {!accountId && (
+            <div className='relative bottom-1 break-words inline-flex flex-col items-center'>
+              <div className='text-base w-p200 pb-6 text-white'>Using Orderbook request re-connect wallet</div>
+              <ConfirmButton
+                onClick={() => {
+                  window.modal.show();
+                }}
+              ></ConfirmButton>
+            </div>
+          )} */}
+
+          {!storageEnough && !!accountId && (
+            <RegisterButton
+              onClick={() => {
+                if (!accountId) return;
+                storageDeposit(accountId);
+              }}
+              storageEnough={!!storageEnough}
+            />
+          )}
         </div>
       )}
 
@@ -720,8 +745,7 @@ function AssetManagerModal(
     tokenInfo: TokenInfo[] | undefined;
   }
 ) {
-  const { onClick, onRequestClose, type, tokenId: tokenIdProp, accountBalance } = props;
-  console.log('tokenIdProp: ', tokenIdProp);
+  const { onClick, onRequestClose, type, tokenId: tokenIdProp, accountBalance, tokenInfo } = props;
 
   const [tokenId, setTokenId] = useState<string | undefined>(tokenIdProp);
 
@@ -731,8 +755,6 @@ function AssetManagerModal(
 
   const [showSelectToken, setShowSelectToken] = useState<boolean>(false);
 
-  const [walletBalance, setWalletBalance] = useState<string>('');
-
   const [tokenMeta, setTokenMeta] = useState<any>();
 
   const [percentage, setPercentage] = useState<string>('0');
@@ -740,6 +762,18 @@ function AssetManagerModal(
   const progressBarIndex = [0, 25, 50, 75, 100];
 
   const [hoverToken, setHoverToken] = useState<boolean>(false);
+
+  const balances = useTokensBalances(
+    tokenInfo?.map((token) => {
+      return {
+        id: token.token_account_id,
+        decimals: token.decimals,
+      };
+    }) || [],
+    tokenInfo
+  );
+
+  const walletBalance = balances?.find((b: any) => b.id === tokenId)?.wallet_balance;
 
   useEffect(() => {
     if (!tokenId) return;
@@ -750,13 +784,6 @@ function AssetManagerModal(
         setTokenMeta(meta);
       });
   }, [tokenId]);
-
-  useEffect(() => {
-    if (!tokenId || !tokenMeta) return;
-    ftGetBalance(tokenId).then((balance) => {
-      setWalletBalance(toReadableNumber(tokenMeta.decimals, balance));
-    });
-  }, [tokenId, tokenMeta]);
 
   const [inputValue, setInputValue] = useState<string>();
   const ref = useRef<HTMLInputElement>(null);
@@ -774,6 +801,12 @@ function AssetManagerModal(
 
     setInputValue(sharePercentOfValue);
   };
+
+  useEffect(() => {
+    if (tokenId && tokenMeta) {
+      setAmountByShareFromBar(percentage);
+    }
+  }, [tokenId, tokenMeta]);
 
   useEffect(() => {
     if (rangeRef.current) {
@@ -960,6 +993,7 @@ function AssetManagerModal(
         onRequestClose={() => {
           setShowSelectToken(false);
         }}
+        balances={balances}
         tokenInfo={props.tokenInfo}
         style={{
           overlay: {
@@ -975,9 +1009,10 @@ function SelectTokenModal(
   props: Modal.Props & {
     onSelect: (tokenId: string) => void;
     tokenInfo: TokenInfo[] | undefined;
+    balances: any;
   }
 ) {
-  const { onRequestClose, onSelect, tokenInfo } = props;
+  const { onRequestClose, onSelect, tokenInfo, balances } = props;
 
   const [sortOrderlyAccount, setSortOrderlyAccount] = useState<'asc' | 'desc'>();
 
@@ -986,16 +1021,6 @@ function SelectTokenModal(
   const [searchValue, setSearchValue] = useState<string>('');
 
   const [sortByBalance, setSortByBalance] = useState<'wallet' | 'orderly'>();
-
-  const balances = useTokensBalances(
-    tokenInfo?.map((token) => {
-      return {
-        id: token.token_account_id,
-        decimals: token.decimals,
-      };
-    }) || [],
-    tokenInfo
-  );
 
   const sortingFunc = (a: any, b: any) => {
     if (sortByBalance === 'wallet' || sortByBalance === undefined) {

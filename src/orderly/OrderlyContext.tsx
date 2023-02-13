@@ -1,7 +1,7 @@
 import React, { useContext, createContext, useState, useEffect } from 'react';
 import { useOrderlyMarketData, useOrderlyPrivateData } from './off-chain-ws';
 import { MarketTrade, Orders, TokenInfo, Trade, Ticker, MarkPrice, Balance, MyOrder } from './type';
-import { useMarketTrades, useTokenInfo, usePendingOrders, useAllOrders } from './state';
+import { useMarketTrades, useTokenInfo, usePendingOrders, useAllOrders, useStorageEnough } from './state';
 
 interface OrderlyContextValue {
   orders: Orders | undefined;
@@ -18,6 +18,7 @@ interface OrderlyContextValue {
   allOrders: MyOrder[];
   handlePendingOrderRefreshing: () => void;
   pendingOrders: MyOrder[];
+  storageEnough: boolean | undefined;
 }
 
 export const OrderlyContext = createContext<OrderlyContextValue | null>(null);
@@ -28,6 +29,8 @@ const OrderlyContextProvider: React.FC<any> = ({ children }) => {
   const value = useOrderlyMarketData({
     symbol,
   });
+
+  const storageEnough = useStorageEnough();
 
   const [myPendingOrdersRefreshing, setMyPendingOrdersRefreshing] = useState<boolean>(false);
 
@@ -64,6 +67,7 @@ const OrderlyContextProvider: React.FC<any> = ({ children }) => {
         allOrders,
         handlePendingOrderRefreshing,
         pendingOrders,
+        storageEnough,
       }}
     >
       {children}

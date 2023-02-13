@@ -37,26 +37,30 @@ function formatTimeDate(ts: number) {
   return moment(ts).format('YYYY-MM-DD HH:mm:ss');
 }
 
-function Selector({
+export function Selector({
   list,
   selected,
   setSelect,
+  className,
 }: {
   list: { text: JSX.Element | string; textId: string; className?: string }[];
   selected: string;
   setSelect: (value: any) => void;
+  className?: string;
 }) {
   return (
     <div className='absolute top-6 z-50'>
-      <div className='flex flex-col min-w-p90  items-start py-2 px-2 rounded-lg border border-borderC text-sm  bg-darkBg'>
+      <div className={`${className}  flex flex-col min-w-p90  items-start py-2 px-1.5 rounded-lg border border-borderC text-sm  bg-darkBg `}>
         {list.map((item, index) => {
           return (
             <div
-              className={`whitespace-nowrap cursor-pointer min-w-fit my-0.5 text-left pl-2 py-1 w-full rounded-md ${item.className} ${
+              className={`whitespace-nowrap cursor-pointer min-w-fit my-0.5 text-left px-1 py-1 w-full rounded-md ${item.className} ${
                 selected === item.textId ? 'bg-symbolHover2' : ''
               } hover:bg-symbolHover2 `}
               key={item.textId + index}
-              onClick={() => {
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 setSelect(item.textId);
               }}
             >
