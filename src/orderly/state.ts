@@ -87,9 +87,8 @@ export function usePendingOrders({ symbol, refreshingTag }: { symbol: string; re
   return liveOrders.filter((o) => o.symbol === symbol);
 }
 
-export function useAllOrders({ symbol, refreshingTag }: { symbol: string; refreshingTag: boolean }) {
+export function useAllOrdersSymbol({ symbol, refreshingTag }: { symbol: string; refreshingTag: boolean }) {
   const [liveOrders, setLiveOrders] = useState<MyOrder[]>([]);
-  console.log('liveOrders: ', liveOrders);
 
   const { accountId } = useWalletSelector();
 
@@ -111,6 +110,32 @@ export function useAllOrders({ symbol, refreshingTag }: { symbol: string; refres
   useEffect(() => {
     setFunc();
   }, [refreshingTag, symbol, setFunc]);
+
+  return liveOrders;
+}
+
+export function useAllOrders({ refreshingTag }: { refreshingTag: boolean }) {
+  const [liveOrders, setLiveOrders] = useState<MyOrder[]>([]);
+
+  const { accountId } = useWalletSelector();
+
+  const setFunc = useCallback(async () => {
+    if (accountId === null) return;
+    try {
+      const allOrders = await getAllOrders({
+        accountId,
+        OrderProps: {
+          size: 200,
+        },
+      });
+
+      setLiveOrders(allOrders);
+    } catch (error) {}
+  }, [refreshingTag]);
+
+  useEffect(() => {
+    setFunc();
+  }, [refreshingTag, setFunc]);
 
   return liveOrders;
 }

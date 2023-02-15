@@ -4,8 +4,8 @@ export interface OrderlyOrder {
   symbol: string;
   client_order_id?: string;
   order_type: 'LIMIT' | 'MARKET' | 'IOC' | 'FOK' | 'POST_ONLY' | 'ASK' | 'BID';
-  order_price?: string;
-  order_quantity?: string;
+  order_price?: string | number;
+  order_quantity?: string | number;
   order_amount?: number;
   side: 'BUY' | 'SELL';
   broker_id?: string;
@@ -147,4 +147,18 @@ export interface OrderTrade {
   executed_quantity: number;
   executed_timestamp: number;
   is_maker: number;
+}
+
+export interface SymbolInfo {
+  created_time: number;
+  updated_time: number;
+  symbol: string;
+  quote_min: number;
+  quote_max: number;
+  quote_tick: number;
+  base_min: number;
+  base_max: number;
+  base_tick: number;
+  min_notional: number;
+  price_range: number;
 }

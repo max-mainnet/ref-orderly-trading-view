@@ -1,7 +1,7 @@
 import React, { useContext, createContext, useState, useEffect } from 'react';
 import { useOrderlyMarketData, useOrderlyPrivateData } from './off-chain-ws';
 import { MarketTrade, Orders, TokenInfo, Trade, Ticker, MarkPrice, Balance, MyOrder } from './type';
-import { useMarketTrades, useTokenInfo, usePendingOrders, useAllOrders, useStorageEnough } from './state';
+import { useMarketTrades, useTokenInfo, usePendingOrders, useAllOrdersSymbol, useStorageEnough } from './state';
 
 interface OrderlyContextValue {
   orders: Orders | undefined;
@@ -15,10 +15,11 @@ interface OrderlyContextValue {
   markPrices: MarkPrice[] | undefined;
   balances?: Record<string, Balance>;
   allTickers: Ticker[] | undefined;
-  allOrders: MyOrder[];
+  allOrdersSymbol: MyOrder[];
   handlePendingOrderRefreshing: () => void;
   pendingOrders: MyOrder[];
   storageEnough: boolean | undefined;
+  myPendingOrdersRefreshing: boolean;
 }
 
 export const OrderlyContext = createContext<OrderlyContextValue | null>(null);
@@ -42,7 +43,7 @@ const OrderlyContextProvider: React.FC<any> = ({ children }) => {
 
   const pendingOrders = usePendingOrders({ symbol, refreshingTag: myPendingOrdersRefreshing });
 
-  const allOrders = useAllOrders({ symbol, refreshingTag: myPendingOrdersRefreshing });
+  const allOrdersSymbol = useAllOrdersSymbol({ symbol, refreshingTag: myPendingOrdersRefreshing });
 
   const recentTrades = useMarketTrades({
     symbol,
@@ -64,10 +65,11 @@ const OrderlyContextProvider: React.FC<any> = ({ children }) => {
         },
         recentTrades,
         tokenInfo,
-        allOrders,
+        allOrdersSymbol,
         handlePendingOrderRefreshing,
         pendingOrders,
         storageEnough,
+        myPendingOrdersRefreshing,
       }}
     >
       {children}

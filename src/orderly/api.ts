@@ -109,13 +109,15 @@ const checkStorageDeposit = async (accountId: string) => {
     functionCallList.push(deposit_functionCall_register);
   }
 
+  console.log('functionCallList: ', functionCallList);
+
   if (storage_balance === null) {
     functionCallList.push(deposit_functionCall_announce_key);
   }
 
-  if (functionCallList.length === 0) return false;
+  if (functionCallList.length === 0) return true;
 
-  return true;
+  return false;
 };
 
 const registerOrderly = async (accountId: string) => {

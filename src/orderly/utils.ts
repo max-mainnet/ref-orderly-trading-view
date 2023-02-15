@@ -18,11 +18,12 @@ export type OFF_CHAIN_METHOD = 'POST' | 'GET' | 'DELETE' | 'PUT';
 
 export const generateTradingKeyPair = () => {
   const EC = new ec('secp256k1');
-  const keyPair = EC.genKeyPair();
 
-  const accountId = window.selector.store.getState().accounts?.[0]?.accountId;
+  const accountId = window.selector.accountId;
 
   if (!accountId) throw NotSignInError;
+
+  const keyPair = EC.genKeyPair();
 
   localStorage.setItem(get_orderly_private_key_path(accountId), keyPair.getPrivate().toString('hex'));
 
@@ -90,10 +91,6 @@ export const generateRequestSignatureHeader = async ({
 }) => {
   const message = generateMessage(time_stamp, method, url, body);
 
-  console.log({
-    message,
-  });
-
   const keyStore = new keyStores.BrowserLocalStorageKeyStore();
 
   const keyPair = await keyStore.getKey(getConfig().networkId, accountId);
@@ -111,7 +108,6 @@ export const generateRequestSignatureHeader = async ({
 
 export const generateOrderSignature = (accountId: string, message: string) => {
   const msgHash = new Buffer(keccak256(message)).toString('hex');
-  console.log('msgHash: ', msgHash);
 
   const priKey = localStorage.getItem(get_orderly_private_key_path(accountId));
 
@@ -127,15 +123,6 @@ export const generateOrderSignature = (accountId: string, message: string) => {
   // console.log(pubKey, keyPair.getPublic().encode('hex', false));
 
   const signature = keyPair.sign(msgHash, 'hex', { canonical: true });
-  console.log(
-    'signature: ',
-    signature.r.toString('hex'),
-    signature.r.toString('hex').length,
-
-    signature.s.toString('hex'),
-    signature.s.toString('hex').length,
-    signature.recoveryParam
-  );
 
   const finalSignature = signature.r.toString('hex', 64) + signature.s.toString('hex', 64) + '0' + signature.recoveryParam;
 

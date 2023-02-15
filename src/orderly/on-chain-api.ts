@@ -4,7 +4,7 @@ import { addKey, AddKey, functionCallAccessKey } from 'near-api-js/lib/transacti
 
 import { PublicKey } from 'near-api-js/lib/utils';
 import { near, orderlyViewFunction, config, ORDERLY_ASSET_MANAGER, keyStore } from '../near';
-import { getNormalizeTradingKey } from './utils';
+import { get_orderly_private_key_path, getNormalizeTradingKey, getPublicKey } from './utils';
 import { find_orderly_functionCall_key, STORAGE_TO_REGISTER_WITH_MFT } from './utils';
 import getConfig from '../config';
 import { BN } from 'bn.js';

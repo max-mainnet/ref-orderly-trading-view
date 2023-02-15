@@ -79,6 +79,7 @@ module.exports = {
         orderLineHover: '#14222D',
         dark2: '#071C2B',
         dark3: '#39454E',
+        allOrderHeader: '#26333E',
       },
       width: {
         '25vw': '25vw',
@@ -109,6 +110,7 @@ module.exports = {
       height: {
         vh90: '90vh',
         p560: '560px',
+        vh65: '65vh',
       },
       maxWidth: {
         '200px': '200px',
@@ -121,6 +123,7 @@ module.exports = {
       },
       maxHeight: {
         p360: '360px',
+        vh65: '65vh',
       },
       minWidth: {
         p72: '72px',

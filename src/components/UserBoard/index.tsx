@@ -24,12 +24,12 @@ import Big from 'big.js';
 import { IoClose } from 'react-icons/io5';
 import { MdArrowDropDown } from 'react-icons/md';
 import { IoIosArrowForward, IoIosArrowDown, IoIosArrowUp } from 'react-icons/io';
-import { toReadableNumber } from '../../orderly/utils';
-import { user_request_withdraw } from '../../orderly/on-chain-api';
 import { CheckBox, ConnectWallet, RegisterButton, TipWrapper, WithdrawButton } from '../Common';
 import { orderPopUp, DepositButton, ConfirmButton } from '../Common/index';
 import { useTokenBalance, useTokensBalances } from './state';
 import { digitWrapper } from '../../utiles';
+
+import { useHistory } from 'react-router-dom';
 
 import { FiSearch } from 'react-icons/fi';
 import { NearIConSelectModal, OutLinkIcon } from '../Common/Icons';
@@ -112,9 +112,8 @@ export function TextWrapper({ className, value, bg, textC }: { value: string; bg
 }
 
 function UserBoard() {
-  const { symbol, setSymbol, orders, tokenInfo, ticker, storageEnough, marketTrade, markPrices, balances, handlePendingOrderRefreshing } =
-    useOrderlyContext();
-  console.log('storageEnough: ', storageEnough);
+  const { symbol, orders, tokenInfo, ticker, storageEnough, marketTrade, markPrices, balances, handlePendingOrderRefreshing } = useOrderlyContext();
+
   const { accountId, modal, selector } = useWalletSelector();
 
   const [showLimitAdvance, setShowLimitAdvance] = useState<boolean>(false);
@@ -289,6 +288,8 @@ function UserBoard() {
 
   const validator = !!accountId && !!storageEnough;
 
+  const history = useHistory();
+
   return (
     <div className='w-full p-6 relative flex flex-col  border-t border-l border-b h-screen border-boxBorder  bg-black bg-opacity-10'>
       {/* not signed in wrapper */}
@@ -417,7 +418,16 @@ function UserBoard() {
       </div>
 
       <div className='inline-flex text-primary justify-end border-b border-white border-opacity-10 mt-3'>
-        <span className='text-sm py-1.5  mb-3 px-3 rounded-lg bg-symbolHover cursor-pointer'>Sell all</span>
+        <span
+          className='text-sm py-1.5  mb-3 px-3 rounded-lg bg-symbolHover cursor-pointer'
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            history.push('/all-orders');
+          }}
+        >
+          See all
+        </span>
       </div>
 
       {/* sell and buy button  */}
