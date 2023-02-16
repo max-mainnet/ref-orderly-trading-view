@@ -19,7 +19,7 @@ export type OFF_CHAIN_METHOD = 'POST' | 'GET' | 'DELETE' | 'PUT';
 export const generateTradingKeyPair = () => {
   const EC = new ec('secp256k1');
 
-  const accountId = window.selector.accountId;
+  const accountId = window.selectorAccountId;
 
   if (!accountId) throw NotSignInError;
 

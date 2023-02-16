@@ -157,7 +157,7 @@ export const nearMetadata = {
 };
 
 export const ftGetBalance = async (tokenId: string) => {
-  const account_id = window.selector.accountId;
+  const account_id = window.selectorAccountId;
   if (!account_id) throw NotSignInError;
 
   const nearConnection = await near.account(account_id);

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Trade, TokenInfo, MyOrder, MarketTrade, Orders } from './type';
 import { getMarketTrades, getOrderlyPublic, getOpenOrders, getAllOrders } from './off-chain-api';
-import { useWalletSelector } from '../WalletSelectorContext';
+import { useWalletSelectorWindow } from '../WalletSelectorContext';
 import { checkStorageDeposit } from './api';
 
 const useIntervalAsync = <R = unknown>(fn: () => Promise<R>, ms: number) => {
@@ -67,7 +67,7 @@ export function useMarketTrades({ symbol, limit, marketTrade }: { symbol: string
 export function usePendingOrders({ symbol, refreshingTag }: { symbol: string; refreshingTag: boolean }) {
   const [liveOrders, setLiveOrders] = useState<MyOrder[]>([]);
 
-  const { accountId } = useWalletSelector();
+  const { accountId } = useWalletSelectorWindow();
 
   const setFunc = useCallback(async () => {
     if (accountId === null) return;
@@ -90,7 +90,7 @@ export function usePendingOrders({ symbol, refreshingTag }: { symbol: string; re
 export function useAllOrdersSymbol({ symbol, refreshingTag }: { symbol: string; refreshingTag: boolean }) {
   const [liveOrders, setLiveOrders] = useState<MyOrder[]>([]);
 
-  const { accountId } = useWalletSelector();
+  const { accountId } = useWalletSelectorWindow();
 
   const setFunc = useCallback(async () => {
     if (accountId === null) return;
@@ -117,7 +117,7 @@ export function useAllOrdersSymbol({ symbol, refreshingTag }: { symbol: string; 
 export function useAllOrders({ refreshingTag }: { refreshingTag: boolean }) {
   const [liveOrders, setLiveOrders] = useState<MyOrder[]>([]);
 
-  const { accountId } = useWalletSelector();
+  const { accountId } = useWalletSelectorWindow();
 
   const setFunc = useCallback(async () => {
     if (accountId === null) return;
@@ -153,7 +153,7 @@ export function useTokenInfo() {
 }
 
 export function useStorageEnough() {
-  const { accountId } = useWalletSelector();
+  const { accountId } = useWalletSelectorWindow();
 
   const [storageEnough, setStorageEnough] = useState<boolean | undefined>(undefined);
 

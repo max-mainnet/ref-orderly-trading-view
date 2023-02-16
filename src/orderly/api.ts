@@ -7,6 +7,7 @@ import {
   storage_balance_of,
   storage_balance_bounds,
   get_cost_of_announce_key,
+  user_account_exists,
 } from './on-chain-api';
 import { Transaction as WSTransaction } from '@near-wallet-selector/core';
 
@@ -56,6 +57,8 @@ const storageDeposit = async (accountId: string) => {
 
   const functionCallList = [];
 
+  const user_exists = await user_account_exists(accountId);
+
   const storage_balance = await storage_balance_of(accountId);
 
   const min_amount = await storage_balance_bounds();
@@ -69,11 +72,11 @@ const storageDeposit = async (accountId: string) => {
 
   // await account.functionCall(ORDERLY_ASSET_MANAGER, 'storage_deposit', {}, new BN(deposit_functionCall.gas), new BN(deposit_functionCall.));
 
-  if (storage_balance === null || new Big(min_amount.min).gt(new Big(storage_balance.available))) {
+  if (!user_exists) {
     functionCallList.push(deposit_functionCall_register);
   }
 
-  if (storage_balance === null) {
+  if (!user_exists || new Big(storage_balance?.available || '0').lt(new Big(announce_key_amount))) {
     functionCallList.push(deposit_functionCall_announce_key);
   }
 
@@ -90,7 +93,11 @@ const storageDeposit = async (accountId: string) => {
 const checkStorageDeposit = async (accountId: string) => {
   // const storage_amount = await get_storage_deposit_amount(accountId);
 
+  // const storage_amount = await get_storage_deposit_amount(accountId);
+
   const functionCallList = [];
+
+  const user_exists = await user_account_exists(accountId);
 
   const storage_balance = await storage_balance_of(accountId);
 
@@ -105,13 +112,11 @@ const checkStorageDeposit = async (accountId: string) => {
 
   // await account.functionCall(ORDERLY_ASSET_MANAGER, 'storage_deposit', {}, new BN(deposit_functionCall.gas), new BN(deposit_functionCall.));
 
-  if (storage_balance === null || new Big(min_amount.min).gt(new Big(storage_balance.available))) {
+  if (!user_exists) {
     functionCallList.push(deposit_functionCall_register);
   }
 
-  console.log('functionCallList: ', functionCallList);
-
-  if (storage_balance === null) {
+  if (!user_exists || new Big(storage_balance?.available || '0').lt(new Big(announce_key_amount))) {
     functionCallList.push(deposit_functionCall_announce_key);
   }
 
@@ -134,7 +139,7 @@ const registerOrderly = async (accountId: string) => {
 
 const depositNEAR = async (amount: string) => {
   const transactions: Transaction[] = [];
-  const account_id = window.selector.accountId;
+  const account_id = window.selectorAccountId;
   if (!account_id) return;
 
   const storageBound = await storage_balance_bounds();
@@ -160,7 +165,7 @@ const depositFT = async (token: string, amount: string) => {
 
   const metaData = await getFTmetadata(token);
 
-  const account_id = window.selector.accountId;
+  const account_id = window.selectorAccountId;
   if (!account_id) return;
 
   const storageBound = await storage_balance_bounds();

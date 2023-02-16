@@ -3,7 +3,7 @@ import './App.css';
 import { TVChartContainer, ChartContainer } from './components/TVChartContainer/index';
 import { ToastContainer } from 'react-toastify';
 import { version } from './charting_library';
-import { WalletSelectorContextProvider } from './WalletSelectorContext';
+import { WalletSelectorContextProvider, WalletSelectorContextWindowProvider, useWalletSelectorWindow } from './WalletSelectorContext';
 import OrderlyContextProvider from './orderly/OrderlyContext';
 import OrderBook from './components/OrderBook';
 import ChartHeader from './components/ChartHeader';
@@ -18,6 +18,11 @@ import Big from 'big.js';
 Big.RM = 0;
 
 function TradingBoard() {
+  const { accountId, modal, selector } = useWalletSelectorWindow();
+  console.log('modal11: ', modal);
+  console.log('accountId11: ', accountId);
+  console.log('selector11: ', selector);
+
   return (
     <div className='w-full flex  pl-4 pt-3'>
       <div className='w-4/5 flex flex-col'>
@@ -52,18 +57,20 @@ function App() {
   return (
     <div className={'App'}>
       <WalletSelectorContextProvider>
-        <OrderlyContextProvider>
-          {/* <RecentTrade></RecentTrade> */}
-          <Router>
-            <Switch>
-              <Route path='/all-orders' component={AllOrders} />
+        <WalletSelectorContextWindowProvider>
+          <OrderlyContextProvider>
+            {/* <RecentTrade></RecentTrade> */}
+            <Router>
+              <Switch>
+                <Route path='/all-orders' component={AllOrders} />
 
-              <Route path='/' component={TradingBoard} />
-            </Switch>
-          </Router>
+                <Route path='/' component={TradingBoard} />
+              </Switch>
+            </Router>
 
-          <ToastContainer />
-        </OrderlyContextProvider>
+            <ToastContainer />
+          </OrderlyContextProvider>
+        </WalletSelectorContextWindowProvider>
       </WalletSelectorContextProvider>
     </div>
   );

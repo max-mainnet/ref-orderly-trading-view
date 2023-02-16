@@ -2,7 +2,7 @@ import useWebSocket, { ReadyState } from 'react-use-websocket';
 import React, { useState, useCallback, useEffect, useRef, useMemo, StrictMode } from 'react';
 import { OrderlyWSConnection, Orders, MarketTrade, Ticker, MarkPrice, Balance } from './type';
 import { getOrderlyConfig } from '../config';
-import { useWalletSelector } from '../WalletSelectorContext';
+import { useWalletSelectorWindow } from '../WalletSelectorContext';
 import { getPublicKey, generateRequestSignatureHeader, toNonDivisibleNumber } from './utils';
 import { NotSignInError } from './error';
 import { getOrderlyWss } from './constant';
@@ -42,7 +42,7 @@ export const useOrderlyWS = () => {
   };
 };
 export const usePrivateOrderlyWS = () => {
-  const { accountId } = useWalletSelector();
+  const { accountId } = useWalletSelectorWindow();
 
   const [socketUrl, setSocketUrl] = useState(getOrderlyConfig().ORDERLY_WS_ENDPOINT_PRIVATE + `/${accountId}`);
 
@@ -288,7 +288,7 @@ export const useOrderlyPrivateData = () => {
   const { connectionStatus, messageHistory, lastMessage, sendMessage, lastJsonMessage } = usePrivateOrderlyWS();
 
   const [authPass, setAuthPass] = useState(false);
-  const { accountId } = useWalletSelector();
+  const { accountId } = useWalletSelectorWindow();
 
   const [balances, setBalances] = useState<Record<string, Balance>>({});
 

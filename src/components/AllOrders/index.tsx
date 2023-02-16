@@ -18,7 +18,7 @@ import { Selector } from '../OrderBoard';
 import { AiOutlineClose, AiOutlineCheck } from 'react-icons/ai';
 import { FlexRowStart, orderPopUp } from '../Common/index';
 import { cancelOrder, cancelOrders, editOrder, getOrderTrades } from '../../orderly/off-chain-api';
-import { useWalletSelector } from '../../WalletSelectorContext';
+import { useWalletSelectorWindow } from '../../WalletSelectorContext';
 import { useAllOrders } from '../../orderly/state';
 import { useAllSymbolInfo } from './state';
 import { useBatchTokenMetaFromSymbols } from '../ChartHeader/state';
@@ -83,7 +83,7 @@ function OrderLine({ order, marketInfo, tokenIn }: { tokenIn: TokenMetadata; ord
 
   const [quantity, setQuantity] = useState<string>(order.quantity.toString());
 
-  const { accountId } = useWalletSelector();
+  const { accountId } = useWalletSelectorWindow();
 
   const { handlePendingOrderRefreshing } = useOrderlyContext();
 
@@ -342,7 +342,7 @@ function HistoryOrderLine({ order, symbol, marketInfo }: { order: MyOrder; symbo
 
   const [orderTradesHistory, setOrderTradesHistory] = useState<OrderTrade[]>();
 
-  const { accountId } = useWalletSelector();
+  const { accountId } = useWalletSelectorWindow();
 
   const { symbolFrom, symbolTo } = parseSymbol(symbol);
 
@@ -542,14 +542,13 @@ function OpenOrders({
   };
 
   useEffect(() => {
-    if (chooseMarketSymbol === 'all_markets') return;
     const showOrders = orders.filter(filterFunc).map((o) => o.symbol);
 
-    if (new Set(showOrders).size !== showOrders.length) {
+    if (showOrders.length === 0 || new Set(showOrders).size !== showOrders.length) {
       return;
     }
 
-    setSelectedMarketSymbol(chooseMarketSymbol);
+    setSelectedMarketSymbol(showOrders[0]);
   }, [chooseMarketSymbol, orders]);
 
   useEffect(() => {
@@ -1095,12 +1094,13 @@ function AllOrderBoard() {
   ];
 
   const [selectedMarketSymbol, setSelectedMarketSymbol] = useState<string>();
+  console.log('selectedMarketSymbol: ', selectedMarketSymbol);
 
   const allTokens = useBatchTokenMetaFromSymbols(allTokenSymbols.length > 0 ? allTokenSymbols : null, tokenInfo);
 
   const allOrders = useAllOrders({ refreshingTag: myPendingOrdersRefreshing });
 
-  const { accountId } = useWalletSelector();
+  const { accountId } = useWalletSelectorWindow();
 
   const [tab, setTab] = useState<'open' | 'history'>('open');
 

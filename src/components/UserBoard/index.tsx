@@ -12,7 +12,7 @@ import {
   scientificNotationToString,
   percentOfBigNumber,
 } from '../../near';
-import { useWalletSelector } from '../../WalletSelectorContext';
+import { useWalletSelectorWindow } from '../../WalletSelectorContext';
 import { depositFT, depositOrderly, registerOrderly, storageDeposit, withdrawOrderly } from '../../orderly/api';
 import { getAccountInformation, getCurrentHolding, createOrder, getOrderByOrderId } from '../../orderly/off-chain-api';
 import { Holding, ClientInfo, TokenInfo, TokenMetadata } from '../../orderly/type';
@@ -114,7 +114,7 @@ export function TextWrapper({ className, value, bg, textC }: { value: string; bg
 function UserBoard() {
   const { symbol, orders, tokenInfo, ticker, storageEnough, marketTrade, markPrices, balances, handlePendingOrderRefreshing } = useOrderlyContext();
 
-  const { accountId, modal, selector } = useWalletSelector();
+  const { accountId, modal, selector } = useWalletSelectorWindow();
 
   const [showLimitAdvance, setShowLimitAdvance] = useState<boolean>(false);
 

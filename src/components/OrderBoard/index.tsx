@@ -15,7 +15,7 @@ import moment from 'moment';
 import { AiOutlineClose, AiOutlineCheck } from 'react-icons/ai';
 import { FlexRowStart, orderPopUp } from '../Common/index';
 import { cancelOrder, cancelOrders, editOrder, getOrderTrades } from '../../orderly/off-chain-api';
-import { useWalletSelector } from '../../WalletSelectorContext';
+import { useWalletSelectorWindow } from '../../WalletSelectorContext';
 import { EditConfirmOrderModal } from '../AllOrders/index';
 import { useTokenMetaFromSymbol } from '../ChartHeader/state';
 
@@ -81,7 +81,7 @@ function OrderLine({ order, tokenInfo }: { order: MyOrder; tokenInfo: TokenInfo[
 
   const tokenIn = useTokenMetaFromSymbol(symbolFrom, tokenInfo);
 
-  const { accountId } = useWalletSelector();
+  const { accountId } = useWalletSelectorWindow();
 
   const { handlePendingOrderRefreshing } = useOrderlyContext();
 
@@ -338,7 +338,7 @@ function HistoryOrderLine({ order, symbol }: { order: MyOrder; symbol: string })
 
   const [orderTradesHistory, setOrderTradesHistory] = useState<OrderTrade[]>();
 
-  const { accountId } = useWalletSelector();
+  const { accountId } = useWalletSelectorWindow();
 
   const { symbolFrom, symbolTo } = parseSymbol(symbol);
 
@@ -958,7 +958,7 @@ function HistoryOrders({
 function OrderBoard() {
   const { symbol, allOrdersSymbol, tokenInfo, handlePendingOrderRefreshing } = useOrderlyContext();
 
-  const { accountId } = useWalletSelector();
+  const { accountId } = useWalletSelectorWindow();
 
   //   const allOrders = useAllOrders({ symbol, refreshingTag: false });
 

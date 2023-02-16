@@ -3,7 +3,7 @@ import { nearMetadata, getFTmetadata, ftGetBalance } from '../../near';
 import { toReadableNumber } from '../../orderly/utils';
 import { Holding, TokenInfo, TokenMetadata } from '../../orderly/type';
 import { getCurrentHolding } from '../../orderly/off-chain-api';
-import { useWalletSelector } from '../../WalletSelectorContext';
+import { useWalletSelectorWindow } from '../../WalletSelectorContext';
 
 export function useTokenBalance(tokenId: string | undefined) {
   const [tokenMeta, setTokenMeta] = useState<any>();
@@ -37,7 +37,7 @@ interface TokenWithDecimals {
 export function useTokensBalances(tokens: TokenWithDecimals[] | undefined, tokenInfo: TokenInfo[] | undefined) {
   const [showbalances, setShowBalances] = useState<any>([]);
 
-  const { accountId } = useWalletSelector();
+  const { accountId } = useWalletSelectorWindow();
 
   const getBalanceAndMeta = async (token: TokenWithDecimals) => {
     const balance = await ftGetBalance(token.id).then((balance) => {

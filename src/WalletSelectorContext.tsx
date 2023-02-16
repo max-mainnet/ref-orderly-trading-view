@@ -15,21 +15,22 @@ import '@near-wallet-selector/modal-ui/styles.css';
 const CONTRACT_ID = getConfig().ORDERLY_ASSET_MANAGER;
 declare global {
   interface Window {
-    selector: WalletSelector & {
-      accountId?: string | null;
-    };
+    selector: WalletSelector & {};
     modal: WalletSelectorModal;
+    selectorAccountId?: string | null;
   }
 }
 
 interface WalletSelectorContextValue {
   selector: WalletSelector & { accountId?: string };
   modal: WalletSelectorModal;
-  accounts: Array<AccountState>;
+  accounts?: Array<AccountState>;
   accountId: string | null;
 }
 
 const WalletSelectorContext = React.createContext<WalletSelectorContextValue | null>(null);
+
+const WalletSelectorContextWindow = React.createContext<WalletSelectorContextValue | null>(null);
 
 export const WalletSelectorContextProvider: React.FC<any> = ({ children }) => {
   const [selector, setSelector] = useState<WalletSelector | null>(null);
@@ -86,7 +87,7 @@ export const WalletSelectorContextProvider: React.FC<any> = ({ children }) => {
 
   const accountId = accounts.find((account) => account.active)?.accountId || null;
 
-  window.selector.accountId = accountId;
+  window.selectorAccountId = accountId;
 
   return (
     <WalletSelectorContext.Provider
@@ -101,6 +102,73 @@ export const WalletSelectorContextProvider: React.FC<any> = ({ children }) => {
     </WalletSelectorContext.Provider>
   );
 };
+
+export const WalletSelectorContextWindowProvider: React.FC<any> = ({ children }) => {
+  const [selector, setSelector] = useState<WalletSelector | null>(window.selector);
+  const [modal, setModal] = useState<WalletSelectorModal | null>(window.modal);
+
+  const [selectorAccountId, setSelectorAccountId] = useState<string | null>(window.selectorAccountId || null);
+
+  Object.defineProperties(window, {
+    selector: {
+      configurable: true,
+      set: (value) => {
+        setSelector(value);
+        return value;
+      },
+      get: () => {
+        return selector;
+      },
+    },
+    modal: {
+      configurable: true,
+      set: (value) => {
+        setModal(value);
+
+        return value;
+      },
+      get: () => {
+        return modal;
+      },
+    },
+    selectorAccountId: {
+      configurable: true,
+      set: (value) => {
+        setSelectorAccountId(value);
+        return value;
+      },
+      get: () => {
+        return selectorAccountId;
+      },
+    },
+  });
+
+  if (!selector || !modal) {
+    return null;
+  }
+
+  return (
+    <WalletSelectorContextWindow.Provider
+      value={{
+        selector,
+        modal,
+        accountId: selectorAccountId,
+      }}
+    >
+      {children}
+    </WalletSelectorContextWindow.Provider>
+  );
+};
+
+export function useWalletSelectorWindow() {
+  const context = React.useContext(WalletSelectorContextWindow);
+
+  if (!context) {
+    throw new Error('useWalletSelector must be used within a WalletSelectorContextProvider');
+  }
+
+  return context;
+}
 
 export function useWalletSelector() {
   const context = React.useContext(WalletSelectorContext);
