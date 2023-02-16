@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useDebugValue } from 'react';
 import { useOrderlyContext } from '../../orderly/OrderlyContext';
 import { parseSymbol } from '../RecentTrade/index';
 import { sortBy } from 'lodash';
@@ -13,7 +13,7 @@ import {
   percentOfBigNumber,
 } from '../../near';
 import { useWalletSelectorWindow } from '../../WalletSelectorContext';
-import { depositFT, depositOrderly, registerOrderly, storageDeposit, withdrawOrderly } from '../../orderly/api';
+import { announceKey, depositFT, depositOrderly, registerOrderly, setTradingKey, storageDeposit, withdrawOrderly } from '../../orderly/api';
 import { getAccountInformation, getCurrentHolding, createOrder, getOrderByOrderId } from '../../orderly/off-chain-api';
 import { Holding, ClientInfo, TokenInfo, TokenMetadata } from '../../orderly/type';
 import { BuyButton, SellButton } from './Button';
@@ -35,6 +35,7 @@ import { FiSearch } from 'react-icons/fi';
 import { NearIConSelectModal, OutLinkIcon } from '../Common/Icons';
 
 import { MdKeyboardArrowDown } from 'react-icons/md';
+import { is_orderly_key_announced, is_trading_key_set } from '../../orderly/on-chain-api';
 
 Modal.defaultStyles = {
   overlay: {
@@ -112,7 +113,7 @@ export function TextWrapper({ className, value, bg, textC }: { value: string; bg
 }
 
 function UserBoard() {
-  const { symbol, orders, tokenInfo, ticker, storageEnough, marketTrade, markPrices, balances, handlePendingOrderRefreshing } = useOrderlyContext();
+  const { symbol, orders, tokenInfo, storageEnough, marketTrade, markPrices, balances, handlePendingOrderRefreshing } = useOrderlyContext();
 
   const { accountId, modal, selector } = useWalletSelectorWindow();
 
@@ -169,7 +170,6 @@ function UserBoard() {
     if (!accountId) return;
 
     getAccountInformation({ accountId }).then((res) => {
-      console.log('res: ', res);
       setUserInfo(res);
     });
 
@@ -281,19 +281,53 @@ function UserBoard() {
     }
   };
 
+  const [tradingKeySet, setTradingKeySet] = useState<boolean>(false);
+  console.log('tradingKeySet: ', tradingKeySet);
+
+  const [keyAnnounced, setKeyAnnounced] = useState<boolean>(false);
+  console.log('keyAnnounced: ', keyAnnounced);
+
+  useEffect(() => {
+    if (!accountId || !storageEnough) return;
+    is_orderly_key_announced(accountId)
+      .then(async (key_announce) => {
+        setKeyAnnounced(key_announce);
+        if (!key_announce) {
+          await announceKey(accountId).then((res) => {
+            setKeyAnnounced(true);
+          });
+        } else return;
+      })
+      .then(() => {
+        is_trading_key_set(accountId).then(async (trading_key_set) => {
+          setTradingKeySet(trading_key_set);
+          if (!trading_key_set) {
+            await setTradingKey(accountId).then(() => {
+              setTradingKeySet(true);
+            });
+          }
+        });
+      });
+  }, [accountId, storageEnough]);
+
+  useEffect(() => {
+    if (!tradingKeySet || !keyAnnounced) return;
+    handlePendingOrderRefreshing();
+  }, [tradingKeySet, keyAnnounced]);
+
   const isInsufficientBalance =
     side === 'Buy'
       ? new Big(total === '-' ? '0' : total).gt(tokenOutHolding || '0') || new Big(tokenOutHolding || 0).eq(0)
       : new Big(inputValue || '0').gt(tokenInHolding || '0');
 
-  const validator = !!accountId && !!storageEnough;
+  const validator = !accountId || !storageEnough || !tradingKeySet || !keyAnnounced;
 
   const history = useHistory();
 
   return (
     <div className='w-full p-6 relative flex flex-col  border-t border-l border-b h-screen border-boxBorder  bg-black bg-opacity-10'>
       {/* not signed in wrapper */}
-      {!validator && (
+      {validator && (
         <div
           className='absolute  flex flex-col justify-center items-center h-full w-full top-0 left-0 z-50 '
           style={{
@@ -320,13 +354,14 @@ function UserBoard() {
             </div>
           )} */}
 
-          {!storageEnough && !!accountId && (
+          {((!storageEnough && !!accountId) || !tradingKeySet || !keyAnnounced) && (
             <RegisterButton
               onClick={() => {
-                if (!accountId) return;
+                if (!accountId || storageEnough) return;
                 storageDeposit(accountId);
               }}
               storageEnough={!!storageEnough}
+              spin={storageEnough && (!tradingKeySet || !keyAnnounced)}
             />
           )}
         </div>
@@ -339,28 +374,6 @@ function UserBoard() {
         className='text-center text-white'
       >
         {!!accountId ? accountId : 'Connect Wallet'}
-      </button>
-
-      <button
-        onClick={async () => {
-          if (!accountId) return;
-          return await storageDeposit(accountId);
-        }}
-        type='button'
-        className='ml-2 text-white'
-      >
-        storage deposit
-      </button>
-
-      <button
-        onClick={async () => {
-          if (!accountId) return;
-          return await registerOrderly(accountId);
-        }}
-        type='button'
-        className='ml-2 text-white'
-      >
-        register orderly
       </button>
 
       <div className='text-sm text-white font-bold mb-4 text-left flex items-center justify-between'>

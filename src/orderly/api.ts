@@ -8,6 +8,7 @@ import {
   storage_balance_bounds,
   get_cost_of_announce_key,
   user_account_exists,
+  is_orderly_key_announced,
 } from './on-chain-api';
 import { Transaction as WSTransaction } from '@near-wallet-selector/core';
 
@@ -50,6 +51,14 @@ const announceKey = async (accountId: string) => {
   const account = await near.account(accountId);
 
   await account.functionCall(ORDERLY_ASSET_MANAGER, 'user_announce_key', {});
+};
+
+const setTradingKey = async (accountId: string) => {
+  const account = await near.account(accountId);
+
+  await account.functionCall(ORDERLY_ASSET_MANAGER, 'user_request_set_trading_key', {
+    key: getNormalizeTradingKey(),
+  });
 };
 
 const storageDeposit = async (accountId: string) => {
@@ -102,6 +111,12 @@ const checkStorageDeposit = async (accountId: string) => {
   const storage_balance = await storage_balance_of(accountId);
 
   const min_amount = await storage_balance_bounds();
+
+  const isAnnounceKey = await is_orderly_key_announced(accountId);
+
+  const isTradingKeySet = await is_orderly_key_announced(accountId);
+
+  if (isAnnounceKey && isTradingKeySet) return true;
 
   const announce_key_amount = await get_cost_of_announce_key();
 
@@ -219,4 +234,5 @@ export {
   depositFT,
   signAndSendTransaction,
   checkStorageDeposit,
+  setTradingKey,
 };

@@ -38,6 +38,30 @@ const user_account_exists = async (user: string) => {
   });
 };
 
+const is_orderly_key_announced = async (user: string) => {
+  const orderly_key = await getPublicKey(user);
+
+  return orderlyViewFunction({
+    methodName: 'is_orderly_key_announced',
+    args: {
+      user,
+      orderly_key,
+    },
+  });
+};
+
+const is_trading_key_set = async (user: string) => {
+  const orderly_key = await getPublicKey(user);
+
+  return orderlyViewFunction({
+    methodName: 'is_trading_key_set',
+    args: {
+      user,
+      orderly_key,
+    },
+  });
+};
+
 const is_symbol_listed = async (pair_symbol: string) => {
   return orderlyViewFunction({
     methodName: 'is_symbol_listed',
@@ -186,4 +210,6 @@ export {
   user_request_withdraw,
   get_storage_deposit_amount,
   get_cost_of_announce_key,
+  is_orderly_key_announced,
+  is_trading_key_set,
 };

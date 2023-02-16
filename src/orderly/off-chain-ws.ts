@@ -13,7 +13,7 @@ import { getFTmetadata } from '../near';
 export const REF_ORDERLY_WS_ID_PREFIX = 'orderly_ws_';
 
 export const useOrderlyWS = () => {
-  const [socketUrl, setSocketUrl] = useState(getOrderlyWss());
+  const [socketUrl, setSocketUrl] = useState(getOrderlyWss(false));
 
   const [messageHistory, setMessageHistory] = useState<any>([]);
 
@@ -45,6 +45,14 @@ export const usePrivateOrderlyWS = () => {
   const { accountId } = useWalletSelectorWindow();
 
   const [socketUrl, setSocketUrl] = useState(getOrderlyConfig().ORDERLY_WS_ENDPOINT_PRIVATE + `/${accountId}`);
+
+  useEffect(() => {
+    if (!accountId) {
+      return;
+    } else {
+      setSocketUrl(getOrderlyConfig().ORDERLY_WS_ENDPOINT_PRIVATE + `/${accountId}`);
+    }
+  }, [accountId]);
 
   const [messageHistory, setMessageHistory] = useState<any>([]);
 
@@ -307,7 +315,7 @@ export const useOrderlyPrivateData = () => {
       url: null,
       body: null,
     }).then(setRequestSignature);
-  }, []);
+  }, [accountId]);
 
   useEffect(() => {
     if (!accountId) return;
@@ -315,7 +323,7 @@ export const useOrderlyPrivateData = () => {
     getPublicKey(accountId).then((res) => {
       setOrderlyKey(res);
     });
-  }, []);
+  }, [accountId]);
 
   useEffect(() => {
     if (!orderlyKey || !requestSignature) return;
@@ -331,7 +339,7 @@ export const useOrderlyPrivateData = () => {
     };
 
     sendMessage(JSON.stringify(authData));
-  }, [orderlyKey, requestSignature]);
+  }, [orderlyKey, requestSignature, accountId]);
 
   useEffect(() => {
     if (lastJsonMessage && lastJsonMessage.event === 'auth' && lastJsonMessage.success === true) {

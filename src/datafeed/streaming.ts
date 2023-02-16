@@ -10,7 +10,7 @@ import { getOrderlyWss } from '../orderly/constant';
 
 const channelToSubscription = new Map();
 
-export const ws = new WebSocket(getOrderlyWss());
+export const ws = new WebSocket(getOrderlyWss(false));
 
 function sendPing() {
   ws.send(

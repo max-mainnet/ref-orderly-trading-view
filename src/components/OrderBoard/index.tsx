@@ -566,7 +566,10 @@ function OpenOrders({
           {showSideSelector && (
             <Selector
               selected={chooseSide}
-              setSelect={setChooseSide}
+              setSelect={(value: any) => {
+                setChooseSide(value);
+                setShowSideSelector(false);
+              }}
               list={[
                 {
                   text: 'Both',
@@ -756,6 +759,8 @@ function HistoryOrders({
               e.preventDefault();
               e.stopPropagation();
               setShowTypeSelector(!showTypeSelector);
+              setShowStatuesSelector(false);
+              setShowSideSelector(false);
             }}
           >
             <span>Type</span>
@@ -765,7 +770,10 @@ function HistoryOrders({
           {showTypeSelector && (
             <Selector
               selected={chooseType}
-              setSelect={setChooseType}
+              setSelect={(value: any) => {
+                setChooseType(value);
+                setShowTypeSelector(false);
+              }}
               list={[
                 {
                   text: 'All Type',
@@ -794,6 +802,8 @@ function HistoryOrders({
               e.preventDefault();
               e.stopPropagation();
               setShowSideSelector(!showSideSelector);
+              setShowTypeSelector(false);
+              setShowStatuesSelector(false);
             }}
           >
             <span>Side</span>
@@ -804,7 +814,10 @@ function HistoryOrders({
           {showSideSelector && (
             <Selector
               selected={chooseSide}
-              setSelect={setChooseSide}
+              setSelect={(value: any) => {
+                setChooseSide(value);
+                setShowSideSelector(false);
+              }}
               list={[
                 {
                   text: 'Both',
@@ -901,6 +914,8 @@ function HistoryOrders({
               e.preventDefault();
               e.stopPropagation();
               setShowStatuesSelector(!showStatuesSelector);
+              setShowTypeSelector(false);
+              setShowSideSelector(false);
             }}
           >
             <span>Status</span>
@@ -911,7 +926,10 @@ function HistoryOrders({
           {showStatuesSelector && (
             <Selector
               selected={chooseStatus}
-              setSelect={setChooseStatus}
+              setSelect={(value: any) => {
+                setChooseStatus(value);
+                setShowStatuesSelector(false);
+              }}
               list={[
                 {
                   text: 'All Status',

@@ -157,6 +157,7 @@ export function ConfirmButton({ onClick }: { onClick: () => void }) {
 
 export function RegisterButton({ onClick, storageEnough, spin }: { onClick: () => void; spin?: boolean; storageEnough: boolean }) {
   const [spinNow, setSpinNow] = useState<boolean>(!!spin);
+  console.log('spinNow: ', spinNow);
 
   useEffect(() => {
     setSpinNow(!!spin);
