@@ -154,49 +154,50 @@ function OrderBook() {
         >
           Recent Trade
         </div>
+        {tab === 'book' && (
+          <div
+            className='max-w-fit min-w-p72 cursor-pointer rounded-md bg-symbolHover pl-2 absolute   right-4 bottom-1 text-white flex justify-center items-center'
+            onClick={() => {
+              setShowPrecisionSelector(!showPrecisionSelector);
+            }}
+          >
+            <span className='relative right-2'>{getPrecisionStringByNumber(precision)}</span>
 
-        <div
-          className='max-w-fit min-w-p72 cursor-pointer rounded-md bg-symbolHover pl-2 absolute   right-4 bottom-1 text-white flex justify-center items-center'
-          onClick={() => {
-            setShowPrecisionSelector(!showPrecisionSelector);
-          }}
-        >
-          <span className='relative right-2'>{getPrecisionStringByNumber(precision)}</span>
-
-          <MdArrowDropDown size={22} className='text-primary absolute right-0 justify-self-end'></MdArrowDropDown>
-          {showPrecisionSelector && (
-            <Selector
-              selected={getPrecisionStringByNumber(precision).toString()}
-              setSelect={(textId: string) => {
-                setPrecision(parseInt(textId));
-                setShowPrecisionSelector(false);
-              }}
-              className=' min-w-p72 -left-2 top-1 relative'
-              list={[
-                {
-                  text: '0.0001',
-                  textId: '4',
-                },
-                {
-                  text: '0.001',
-                  textId: '3',
-                },
-                {
-                  text: '0.01',
-                  textId: '2',
-                },
-                {
-                  text: '0.1',
-                  textId: '1',
-                },
-                {
-                  text: '1',
-                  textId: '0',
-                },
-              ]}
-            />
-          )}
-        </div>
+            <MdArrowDropDown size={22} className='text-primary absolute right-0 justify-self-end'></MdArrowDropDown>
+            {showPrecisionSelector && (
+              <Selector
+                selected={getPrecisionStringByNumber(precision).toString()}
+                setSelect={(textId: string) => {
+                  setPrecision(parseInt(textId));
+                  setShowPrecisionSelector(false);
+                }}
+                className=' min-w-p72 -left-2 top-1 relative'
+                list={[
+                  {
+                    text: '0.0001',
+                    textId: '4',
+                  },
+                  {
+                    text: '0.001',
+                    textId: '3',
+                  },
+                  {
+                    text: '0.01',
+                    textId: '2',
+                  },
+                  {
+                    text: '0.1',
+                    textId: '1',
+                  },
+                  {
+                    text: '1',
+                    textId: '0',
+                  },
+                ]}
+              />
+            )}
+          </div>
+        )}
       </div>
 
       {tab === 'book' && (
