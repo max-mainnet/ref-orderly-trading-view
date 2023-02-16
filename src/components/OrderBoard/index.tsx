@@ -664,19 +664,26 @@ function OpenOrders({
           <span>Actions</span>
         </FlexRow>
       </div>
-      <div
-        className='flex flex-col overflow-auto'
-        style={{
-          height: 'calc(100vh - 750px)',
-        }}
-      >
-        {orders
-          .sort(sortingFunc)
-          .filter(filterFunc)
-          .map((order) => {
-            return <OrderLine tokenInfo={tokenInfo} order={order} key={order.order_id} />;
-          })}
-      </div>
+
+      {
+        <div
+          className='flex flex-col overflow-auto'
+          style={{
+            height: 'calc(100vh - 750px)',
+          }}
+        >
+          {orders.length === 0 ? (
+            <div className='text-dark4 mt-10 text-sm'>No orders found</div>
+          ) : (
+            orders
+              .sort(sortingFunc)
+              .filter(filterFunc)
+              .map((order) => {
+                return <OrderLine tokenInfo={tokenInfo} order={order} key={order.order_id} />;
+              })
+          )}
+        </div>
+      }
     </>
   );
 }
@@ -962,12 +969,16 @@ function HistoryOrders({
           height: 'calc(100vh - 750px)',
         }}
       >
-        {orders
-          .sort(sortingFunc)
-          .filter(filterFunc)
-          .map((order) => {
-            return <HistoryOrderLine symbol={symbol} order={order} key={order.order_id} />;
-          })}
+        {orders.length === 0 ? (
+          <div className='text-dark4 mt-10 text-sm'>No orders found</div>
+        ) : (
+          orders
+            .sort(sortingFunc)
+            .filter(filterFunc)
+            .map((order) => {
+              return <HistoryOrderLine symbol={symbol} order={order} key={order.order_id} />;
+            })
+        )}
       </div>
     </>
   );
@@ -982,24 +993,28 @@ function OrderBoard() {
 
   const [tab, setTab] = useState<'open' | 'history'>('open');
 
-  const openOrders = allOrdersSymbol.filter((o) => {
+  const openOrders = allOrdersSymbol?.filter((o) => {
     return o.type === 'LIMIT' && (o.status === 'NEW' || o.status === 'PARTIAL_FILLED');
   });
 
   // get history orders, which is orders that are not open orders
-  const historyOrders = allOrdersSymbol.filter((o) => {
-    return openOrders.map((o) => o.order_id).indexOf(o.order_id) === -1;
+  const historyOrders = allOrdersSymbol?.filter((o) => {
+    return openOrders?.map((o) => o.order_id).indexOf(o.order_id) === -1;
   });
 
-  const [openCount, setOpenCount] = useState<number>(openOrders.length);
+  const [openCount, setOpenCount] = useState<number>();
 
-  const [historyCount, setHistoryCount] = useState<number>(historyOrders.length);
+  const [historyCount, setHistoryCount] = useState<number>();
 
   useEffect(() => {
-    setOpenCount(openOrders.length);
+    if (openOrders !== undefined) {
+      setOpenCount(openOrders.length);
+    }
 
-    setHistoryCount(historyOrders.length);
-  }, [allOrdersSymbol]);
+    if (historyOrders !== undefined) {
+      setHistoryCount(historyOrders.length);
+    }
+  }, [allOrdersSymbol, openOrders?.length, historyOrders?.length]);
 
   return (
     <div className='rounded-2xl border text-primary border-boxBorder    w-full text-sm bg-black  bg-opacity-10 py-4'>
@@ -1015,10 +1030,14 @@ function OrderBoard() {
 
             <span
               className={`flex items-center justify-center h-4 px-1.5 min-w-fit text-xs rounded-md  ml-2 ${
-                tab === 'open' ? 'bg-baseGreen text-black' : 'text-primary bg-symbolHover'
+                tab === 'open'
+                  ? allOrdersSymbol === undefined
+                    ? 'text-white bg-grayBgLight'
+                    : 'bg-baseGreen text-black'
+                  : 'text-primary bg-symbolHover'
               } `}
             >
-              {openCount === undefined ? openOrders.length : openCount}
+              {allOrdersSymbol === undefined ? '-' : openCount}
             </span>
           </FlexRow>
 
@@ -1035,7 +1054,7 @@ function OrderBoard() {
                 tab === 'history' ? 'bg-grayBgLight text-white' : 'text-primary bg-symbolHover'
               } `}
             >
-              {historyCount === undefined ? historyOrders.length : historyCount}
+              {allOrdersSymbol === undefined ? '-' : historyCount}
             </span>
           </FlexRow>
         </FlexRow>
@@ -1060,8 +1079,8 @@ function OrderBoard() {
           />
         )}
       </FlexRowBetween>
-      {<OpenOrders tokenInfo={tokenInfo} orders={openOrders} setOpenCount={setOpenCount} symbol={symbol} hidden={tab === 'history'} />}
-      {<HistoryOrders setHistoryCount={setHistoryCount} orders={historyOrders} symbol={symbol} hidden={tab === 'open'} />}
+      {<OpenOrders tokenInfo={tokenInfo} orders={openOrders || []} setOpenCount={setOpenCount} symbol={symbol} hidden={tab === 'history'} />}
+      {<HistoryOrders setHistoryCount={setHistoryCount} orders={historyOrders || []} symbol={symbol} hidden={tab === 'open'} />}
     </div>
   );
 }

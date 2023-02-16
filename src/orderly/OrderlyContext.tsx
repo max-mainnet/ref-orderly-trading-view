@@ -15,7 +15,7 @@ interface OrderlyContextValue {
   markPrices: MarkPrice[] | undefined;
   balances?: Record<string, Balance>;
   allTickers: Ticker[] | undefined;
-  allOrdersSymbol: MyOrder[];
+  allOrdersSymbol: MyOrder[] | undefined;
   handlePendingOrderRefreshing: () => void;
   pendingOrders: MyOrder[];
   storageEnough: boolean | undefined;

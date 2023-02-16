@@ -47,7 +47,7 @@ export function usePendingOrders({ symbol, refreshingTag }: { symbol: string; re
 }
 
 export function useAllOrdersSymbol({ symbol, refreshingTag }: { symbol: string; refreshingTag: boolean }) {
-  const [liveOrders, setLiveOrders] = useState<MyOrder[]>([]);
+  const [liveOrders, setLiveOrders] = useState<MyOrder[]>();
 
   const { accountId } = useWalletSelectorWindow();
 
@@ -74,7 +74,7 @@ export function useAllOrdersSymbol({ symbol, refreshingTag }: { symbol: string; 
 }
 
 export function useAllOrders({ refreshingTag }: { refreshingTag: boolean }) {
-  const [liveOrders, setLiveOrders] = useState<MyOrder[]>([]);
+  const [liveOrders, setLiveOrders] = useState<MyOrder[]>();
 
   const { accountId } = useWalletSelectorWindow();
 

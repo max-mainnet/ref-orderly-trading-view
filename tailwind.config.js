@@ -79,6 +79,8 @@ module.exports = {
         orderLineHover: '#14222D',
         dark2: '#071C2B',
         dark3: '#39454E',
+        dark4: '#2B3A45',
+        light1: ' rgba(126, 138, 147, 0.5)',
         allOrderHeader: '#26333E',
       },
       width: {

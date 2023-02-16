@@ -722,19 +722,23 @@ function OpenOrders({
         </FlexRow>
       </div>
       <div className='flex max-h-vh65   overflow-auto  flex-col '>
-        {orders
-          .sort(sortingFunc)
-          .filter(filterFunc)
-          .map((order) => {
-            return (
-              <OrderLine
-                tokenIn={allTokens[parseSymbol(order.symbol).symbolFrom]}
-                marketInfo={marketList.find((m) => m.textId === order.symbol)?.text}
-                order={order}
-                key={order.order_id}
-              />
-            );
-          })}
+        {orders.length === 0 ? (
+          <div className='text-dark4 mt-10 text-sm'>No orders found</div>
+        ) : (
+          orders
+            .sort(sortingFunc)
+            .filter(filterFunc)
+            .map((order) => {
+              return (
+                <OrderLine
+                  tokenIn={allTokens[parseSymbol(order.symbol).symbolFrom]}
+                  marketInfo={marketList.find((m) => m.textId === order.symbol)?.text}
+                  order={order}
+                  key={order.order_id}
+                />
+              );
+            })
+        )}
       </div>
     </>
   );
@@ -1058,19 +1062,23 @@ function HistoryOrders({
         </FlexRow>
       </div>
       <div className='flex overflow-auto max-h-vh65  flex-col '>
-        {orders
-          .sort(sortingFunc)
-          .filter(filterFunc)
-          .map((order) => {
-            return (
-              <HistoryOrderLine
-                marketInfo={marketList.find((m) => m.textId === order.symbol)?.text}
-                symbol={symbol}
-                order={order}
-                key={order.order_id}
-              />
-            );
-          })}
+        {orders.length === 0 ? (
+          <div className='text-dark4 mt-10 text-sm'>No orders found</div>
+        ) : (
+          orders
+            .sort(sortingFunc)
+            .filter(filterFunc)
+            .map((order) => {
+              return (
+                <HistoryOrderLine
+                  marketInfo={marketList.find((m) => m.textId === order.symbol)?.text}
+                  symbol={symbol}
+                  order={order}
+                  key={order.order_id}
+                />
+              );
+            })
+        )}
       </div>
     </>
   );
@@ -1094,7 +1102,6 @@ function AllOrderBoard() {
   ];
 
   const [selectedMarketSymbol, setSelectedMarketSymbol] = useState<string>();
-  console.log('selectedMarketSymbol: ', selectedMarketSymbol);
 
   const allTokens = useBatchTokenMetaFromSymbols(allTokenSymbols.length > 0 ? allTokenSymbols : null, tokenInfo);
 
@@ -1104,25 +1111,28 @@ function AllOrderBoard() {
 
   const [tab, setTab] = useState<'open' | 'history'>('open');
 
-  const openOrders = allOrders.filter((o) => {
+  const openOrders = allOrders?.filter((o) => {
     return o.type === 'LIMIT' && (o.status === 'NEW' || o.status === 'PARTIAL_FILLED');
   });
 
   // get history orders, which is orders that are not open orders
-  const historyOrders = allOrders.filter((o) => {
-    return openOrders.map((o) => o.order_id).indexOf(o.order_id) === -1;
+  const historyOrders = allOrders?.filter((o) => {
+    return openOrders?.map((o) => o.order_id).indexOf(o.order_id) === -1;
   });
 
-  const [openCount, setOpenCount] = useState<number>(openOrders.length);
+  const [openCount, setOpenCount] = useState<number>();
 
-  const [historyCount, setHistoryCount] = useState<number>(historyOrders.length);
+  const [historyCount, setHistoryCount] = useState<number>();
 
   useEffect(() => {
-    setOpenCount(openOrders.length);
+    if (openOrders !== undefined) {
+      setOpenCount(openOrders.length);
+    }
 
-    setHistoryCount(historyOrders.length);
-  }, [allOrders]);
-  console.log('allOrders: ', allOrders);
+    if (historyOrders !== undefined) {
+      setHistoryCount(historyOrders.length);
+    }
+  }, [allOrders, openOrders?.length, historyOrders?.length]);
 
   return (
     <>
@@ -1147,10 +1157,10 @@ function AllOrderBoard() {
 
               <span
                 className={`flex items-center justify-center h-4 px-1.5 min-w-fit text-xs rounded-md  ml-2 ${
-                  tab === 'open' ? 'bg-baseGreen text-black' : 'text-primary bg-symbolHover'
+                  tab === 'open' ? (allOrders === undefined ? 'text-white bg-grayBgLight' : 'bg-baseGreen text-black') : 'text-primary bg-symbolHover'
                 } `}
               >
-                {openCount === undefined ? openOrders.length : openCount}
+                {allOrders === undefined ? '-' : openCount}
               </span>
             </FlexRow>
 
@@ -1167,7 +1177,7 @@ function AllOrderBoard() {
                   tab === 'history' ? 'bg-grayBgLight text-white' : 'text-primary bg-symbolHover'
                 } `}
               >
-                {historyCount === undefined ? historyOrders.length : historyCount}
+                {allOrders === undefined ? '-' : historyCount}
               </span>
             </FlexRow>
           </FlexRow>
@@ -1197,7 +1207,7 @@ function AllOrderBoard() {
             availableSymbols={availableSymbols}
             setSelectedMarketSymbol={setSelectedMarketSymbol}
             allTokens={allTokens}
-            orders={openOrders}
+            orders={openOrders || []}
             setOpenCount={setOpenCount}
             symbol={symbol}
             hidden={tab === 'history'}
@@ -1208,7 +1218,7 @@ function AllOrderBoard() {
             availableSymbols={availableSymbols}
             allTokens={allTokens}
             setHistoryCount={setHistoryCount}
-            orders={historyOrders}
+            orders={historyOrders || []}
             symbol={symbol}
             hidden={tab === 'open'}
           />
