@@ -13,7 +13,6 @@ export function useTokenMetaFromSymbol(symbol: string, tokenInfo: TokenInfo[] | 
     if (!token?.token_account_id) return;
 
     getFTmetadata(token.token_account_id).then((t) => {
-      console.log('t: ', t);
       setTokenMetadata({
         ...t,
         ...token,

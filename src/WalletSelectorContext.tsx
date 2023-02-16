@@ -12,7 +12,7 @@ import { useEffect, useState, useCallback } from 'react';
 import getConfig from './config';
 import '@near-wallet-selector/modal-ui/styles.css';
 
-const CONTRACT_ID = getConfig().REF_FARM_BOOST_CONTRACT_ID;
+const CONTRACT_ID = getConfig().ORDERLY_ASSET_MANAGER;
 declare global {
   interface Window {
     selector: WalletSelector & {};

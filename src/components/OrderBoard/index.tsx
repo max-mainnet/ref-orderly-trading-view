@@ -137,7 +137,12 @@ function OrderLine({ order, tokenInfo }: { order: MyOrder; tokenInfo: TokenInfo[
       });
   }
 
-  const validateChange = new Big(order.price).eq(new Big(price)) && new Big(order.quantity).eq(new Big(quantity));
+  const validateChange =
+    new Big(price || 0).lte(0) ||
+    new Big(quantity || 0).lte(0) ||
+    (new Big(order.price).eq(new Big(price || 0)) && new Big(order.quantity).eq(new Big(quantity || 0)));
+
+  console.log('price: ', price);
 
   return (
     <div key={order.order_id} className='grid hover:bg-orderLineHover grid-cols-12 pl-5 pr-4 py-2 border-t border-white border-opacity-10'>

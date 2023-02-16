@@ -139,9 +139,10 @@ function OrderLine({ order, marketInfo, tokenIn }: { tokenIn: TokenMetadata; ord
         });
       });
   }
-
-  const validateChange = new Big(order.price).eq(new Big(price)) && new Big(order.quantity).eq(new Big(quantity));
-
+  const validateChange =
+    new Big(price || 0).lte(0) ||
+    new Big(quantity || 0).lte(0) ||
+    (new Big(order.price).eq(new Big(price || 0)) && new Big(order.quantity).eq(new Big(quantity || 0)));
   return (
     <div key={order.order_id} className='grid hover:bg-orderLineHover grid-cols-10 pl-5 pr-4 py-3 border-t border-white border-opacity-10'>
       <FlexRow className='relative col-span-1'>

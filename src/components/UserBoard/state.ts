@@ -6,6 +6,7 @@ import { getCurrentHolding } from '../../orderly/off-chain-api';
 import { useWalletSelectorWindow } from '../../WalletSelectorContext';
 
 export function useTokenBalance(tokenId: string | undefined) {
+  console.log('tokenId: ', tokenId);
   const [tokenMeta, setTokenMeta] = useState<any>();
   const [walletBalance, setWalletBalance] = useState<string>('');
 

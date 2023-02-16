@@ -37,29 +37,17 @@ ws.onopen = () => {
 ws.onmessage = (event) => {
   const { event: data_event } = JSON.parse(event.data);
 
-  console.log('msg event', event);
-
   if (data_event) {
     if (data_event === 'ping') {
       sendPong();
       sendPing();
     }
-
-    // else if (data_event === 'pong') {
-    //   sendPing();
-    // }
   }
-
-  // alert('message');
 };
 
-ws.onclose = (event) => {
-  console.log('close event: ', event);
-};
+ws.onclose = (event) => {};
 
 ws.onerror = (event) => {
-  console.log('error event: ', event);
-
   // alert('error ');
 };
 

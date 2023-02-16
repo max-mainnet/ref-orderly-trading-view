@@ -56,7 +56,7 @@ export const usePrivateOrderlyWS = () => {
 
   const [messageHistory, setMessageHistory] = useState<any>([]);
 
-  const { lastMessage, readyState, lastJsonMessage, sendMessage } = useWebSocket(socketUrl);
+  const { lastMessage, readyState, lastJsonMessage, sendMessage } = useWebSocket(!accountId ? null : socketUrl);
 
   useEffect(() => {
     if (lastMessage !== null) {

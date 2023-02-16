@@ -36,6 +36,7 @@ import { NearIConSelectModal, OutLinkIcon } from '../Common/Icons';
 import { MdKeyboardArrowDown } from 'react-icons/md';
 import { is_orderly_key_announced, is_trading_key_set } from '../../orderly/on-chain-api';
 import getConfig from '../../config';
+import { useTokenMetaFromSymbol } from '../ChartHeader/state';
 
 Modal.defaultStyles = {
   overlay: {
@@ -147,15 +148,11 @@ function UserBoard() {
 
   const [holdings, setHoldings] = useState<Holding[]>();
 
-  const idFrom = tokenInfo && tokenInfo.find((t) => t.token === symbolFrom)?.token_account_id;
+  const tokenIn = useTokenMetaFromSymbol(symbolFrom, tokenInfo);
 
-  const idTo = tokenInfo && tokenInfo.find((t) => t.token === symbolTo)?.token_account_id;
+  const tokenOut = useTokenMetaFromSymbol(symbolTo, tokenInfo);
 
-  const [operationId, setOperationId] = useState<string>(idFrom || '');
-
-  const [iconIn, setIconIn] = useState<string>();
-
-  const [iconOut, setIconOut] = useState<string>();
+  const [operationId, setOperationId] = useState<string>(tokenIn?.id || '');
 
   const [inputValue, setInputValue] = useState<string>('1');
 
@@ -176,11 +173,9 @@ function UserBoard() {
 
   const inputAmountRef = useRef<HTMLInputElement>(null);
 
-  const [tokenIn, setTokenIn] = useState<TokenMetadata>();
+  const tokenFromBalance = useTokenBalance(tokenIn?.id);
 
-  const tokenFromBalance = useTokenBalance(idFrom);
-
-  const tokenToBalance = useTokenBalance(idTo);
+  const tokenToBalance = useTokenBalance(tokenOut?.id);
 
   useEffect(() => {
     if (!accountId) return;
@@ -193,31 +188,6 @@ function UserBoard() {
       setHoldings(res?.data?.holding);
     });
   }, [accountId]);
-
-  useEffect(() => {
-    if (!idFrom) return;
-
-    if (idFrom === 'near') {
-      setIconIn(nearMetadata.icon);
-    } else {
-      getFTmetadata(idFrom).then((res) => {
-        setTokenIn(res);
-        setIconIn(res.icon);
-      });
-    }
-  }, [idFrom, symbol]);
-
-  useEffect(() => {
-    if (!idTo) return;
-
-    if (idTo === 'near') {
-      setIconOut(nearMetadata.icon);
-    } else {
-      getFTmetadata(idTo).then((res) => {
-        setIconOut(res.icon);
-      });
-    }
-  }, [idTo, symbol]);
 
   const tokenInHolding = (balances && balances[symbolFrom]?.holding) || (holdings && holdings.find((h) => h.token === symbolFrom)?.holding);
 
@@ -234,14 +204,16 @@ function UserBoard() {
       ? '-'
       : (userInfo.taker_fee_rate / 10000) * Number(side === 'Buy' ? orders.asks?.[0]?.[0] : orders?.bids?.[0]?.[0] || 0) * Number(inputValue || 0);
 
+  const marketPrice = !orders ? 0 : side === 'Buy' ? orders.asks?.[0]?.[0] : orders?.bids?.[0]?.[0];
+
   const total =
     orderType === 'Limit'
       ? !limitPrice || !userInfo || fee === '-'
         ? '-'
         : Number(inputValue || 0) * Number(limitPrice || 0) - Number(fee)
-      : !orders || !userInfo || fee === '-' || !(side === 'Buy' ? orders.asks?.[0]?.[0] : orders?.bids?.[0]?.[0])
+      : !orders || !userInfo || fee === '-' || !marketPrice
       ? '-'
-      : Number(inputValue || 0) * Number((side === 'Buy' ? orders.asks?.[0]?.[0] : orders?.bids?.[0]?.[0]) || 0) - Number(fee);
+      : Number(inputValue || 0) * Number(marketPrice || 0) - Number(fee);
 
   const handleSubmit = () => {
     if (!accountId) return;
@@ -401,14 +373,14 @@ function UserBoard() {
           <DepositButton
             onClick={() => {
               setOperationType('deposit');
-              setOperationId(idFrom || '');
+              setOperationId(tokenIn?.id || '');
             }}
           ></DepositButton>
 
           <WithdrawButton
             onClick={() => {
               setOperationType('withdraw');
-              setOperationId(idFrom || '');
+              setOperationId(tokenIn?.id || '');
             }}
           ></WithdrawButton>
         </div>
@@ -424,7 +396,7 @@ function UserBoard() {
 
       <div className='grid grid-cols-4 items-center mb-5 text-white text-sm justify-between'>
         <div className='flex items-center justify-self-start col-span-2'>
-          <img src={iconIn} className='rounded-full w-6 h-6 mr-2' alt='' />
+          <img src={tokenIn?.icon} alt='' className='rounded-full w-6 h-6 mr-2' />
           <span>{symbolFrom}</span>
         </div>
 
@@ -437,7 +409,7 @@ function UserBoard() {
 
       <div className=' items-center text-white text-sm justify-between grid grid-cols-4'>
         <div className='flex items-center justify-self-start col-span-2'>
-          <img src={iconOut} className='rounded-full w-6 h-6 mr-2' alt='' />
+          <img src={tokenOut?.icon} className='rounded-full w-6 h-6 mr-2' alt='' />
           <span>{symbolTo}</span>
         </div>
 
@@ -767,7 +739,7 @@ function UserBoard() {
         symbolTo={symbolTo}
         side={side}
         quantity={inputValue}
-        price={orderType === 'Limit' ? limitPrice : markPriceSymbol?.price?.toString() || '0'}
+        price={orderType === 'Limit' ? limitPrice : marketPrice.toString()}
         fee={fee}
         totalCost={total}
         onClick={handleSubmit}
