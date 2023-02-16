@@ -722,8 +722,8 @@ function OpenOrders({
         </FlexRow>
       </div>
       <div className='flex max-h-vh65   overflow-auto  flex-col '>
-        {orders.length === 0 ? (
-          <div className='text-dark4 mt-10 text-sm'>No orders found</div>
+        {orders.filter(filterFunc).length === 0 ? (
+          <div className='text-dark4 mt-10 mb-4 text-sm'>No orders found</div>
         ) : (
           orders
             .sort(sortingFunc)
@@ -807,7 +807,7 @@ function HistoryOrders({
     if (!orders) return;
 
     setHistoryCount(orders.filter(filterFunc).length);
-  }, [chooseSide, chooseType, chooseStatus, !!orders]);
+  }, [chooseSide, chooseType, chooseStatus, !!orders, chooseMarketSymbol]);
 
   useEffect(() => {
     if (showSideSelector || showTypeSelector || showStatuesSelector || showMarketSelector)
@@ -1062,8 +1062,8 @@ function HistoryOrders({
         </FlexRow>
       </div>
       <div className='flex overflow-auto max-h-vh65  flex-col '>
-        {orders.length === 0 ? (
-          <div className='text-dark4 mt-10 text-sm'>No orders found</div>
+        {orders.filter(filterFunc).length === 0 ? (
+          <div className='text-dark4 mt-10 mb-4 text-sm'>No orders found</div>
         ) : (
           orders
             .sort(sortingFunc)

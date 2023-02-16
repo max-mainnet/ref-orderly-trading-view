@@ -672,8 +672,8 @@ function OpenOrders({
             height: 'calc(100vh - 750px)',
           }}
         >
-          {orders.length === 0 ? (
-            <div className='text-dark4 mt-10 text-sm'>No orders found</div>
+          {orders.filter(filterFunc).length === 0 ? (
+            <div className='text-dark4 mt-10 mb-4 text-sm'>No orders found</div>
           ) : (
             orders
               .sort(sortingFunc)
@@ -969,8 +969,8 @@ function HistoryOrders({
           height: 'calc(100vh - 750px)',
         }}
       >
-        {orders.length === 0 ? (
-          <div className='text-dark4 mt-10 text-sm'>No orders found</div>
+        {orders.filter(filterFunc).length === 0 ? (
+          <div className='text-dark4 mt-10 mb-4 text-sm'>No orders found</div>
         ) : (
           orders
             .sort(sortingFunc)
