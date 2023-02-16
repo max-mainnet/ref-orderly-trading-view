@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useDebugValue } from 'react';
 import { useOrderlyContext } from '../../orderly/OrderlyContext';
 import { parseSymbol } from '../RecentTrade/index';
-import { sortBy } from 'lodash';
 import {
   nearMetadata,
   getFTmetadata,
@@ -36,6 +35,7 @@ import { NearIConSelectModal, OutLinkIcon } from '../Common/Icons';
 
 import { MdKeyboardArrowDown } from 'react-icons/md';
 import { is_orderly_key_announced, is_trading_key_set } from '../../orderly/on-chain-api';
+import getConfig from '../../config';
 
 Modal.defaultStyles = {
   overlay: {
@@ -61,6 +61,22 @@ Modal.defaultStyles = {
     outline: 'none',
   },
 };
+
+function validContract() {
+  const walletStoredContract = localStorage.getItem('near-wallet-selector:contract');
+
+  if (!walletStoredContract) {
+    return true;
+  } else {
+    const parsedContract = JSON.parse(walletStoredContract)?.contractId;
+
+    if (parsedContract && parsedContract !== getConfig().ORDERLY_ASSET_MANAGER) {
+      return false;
+    }
+
+    return true;
+  }
+}
 
 export const TokenLinks = {
   NEAR: 'https://awesomenear.com/near-protocol',
@@ -285,7 +301,6 @@ function UserBoard() {
   console.log('tradingKeySet: ', tradingKeySet);
 
   const [keyAnnounced, setKeyAnnounced] = useState<boolean>(false);
-  console.log('keyAnnounced: ', keyAnnounced);
 
   useEffect(() => {
     if (!accountId || !storageEnough) return;
@@ -320,7 +335,7 @@ function UserBoard() {
       ? new Big(total === '-' ? '0' : total).gt(tokenOutHolding || '0') || new Big(tokenOutHolding || 0).eq(0)
       : new Big(inputValue || '0').gt(tokenInHolding || '0');
 
-  const validator = !accountId || !storageEnough || !tradingKeySet || !keyAnnounced;
+  const validator = !accountId || !storageEnough || !tradingKeySet || !keyAnnounced || !validContract();
 
   const history = useHistory();
 
@@ -343,18 +358,21 @@ function UserBoard() {
             ></ConnectWallet>
           )}
 
-          {/* {!accountId && (
+          {accountId && !validContract() && (
             <div className='relative bottom-1 break-words inline-flex flex-col items-center'>
               <div className='text-base w-p200 pb-6 text-white'>Using Orderbook request re-connect wallet</div>
               <ConfirmButton
-                onClick={() => {
-                  window.modal.show();
+                onClick={async () => {
+                  // window.modal.show();
+                  const wallet = await window.selector.wallet();
+
+                  await wallet.signOut();
                 }}
               ></ConfirmButton>
             </div>
-          )} */}
+          )}
 
-          {((!storageEnough && !!accountId) || !tradingKeySet || !keyAnnounced) && (
+          {!!accountId && validContract() && (!storageEnough || !tradingKeySet || !keyAnnounced) && (
             <RegisterButton
               onClick={() => {
                 if (!accountId || storageEnough) return;

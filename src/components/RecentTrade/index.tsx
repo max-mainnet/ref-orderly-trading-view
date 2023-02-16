@@ -10,7 +10,6 @@ export function parseSymbol(fullName: string) {
 }
 
 function formatTime(ts: number) {
-  console.log('ts: ', ts);
   const curTime = Date.now();
 
   if (curTime - ts > 60 * 60 * 24 * 1000) {
