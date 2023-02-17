@@ -267,17 +267,6 @@ function OrderBook() {
               height: '225px',
             }}
             id='buy-order-book-panel'
-            onScroll={(e) => {
-              // console.log()
-              const el = document.getElementById('order-smile-2');
-              const el2 = document.getElementById('order-id-2');
-
-              const el3 = document.getElementById('buy-box');
-
-              console.log(el?.scrollTop);
-              console.log(el2?.scrollTop);
-              console.log(el3?.scrollTop);
-            }}
           >
             {bids?.map((order, i) => {
               return (
@@ -292,12 +281,7 @@ function OrderBook() {
 
                   <span>{bidtotalSize[i][1].toFixed(2)}</span>
 
-                  <div
-                    className='absolute left-0 top-1 z-40'
-                    style={{
-                      zIndex: 999 - i,
-                    }}
-                  >
+                  <div className='absolute left-0 top-1 z-40'>
                     {pendingOrders && groupMyPendingOrders[order[0]] && (
                       <MyOrderTip scrollTagID='buy-order-book-panel' price={order[0]} quantity={groupMyPendingOrders[order[0]]} />
                     )}

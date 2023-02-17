@@ -156,16 +156,42 @@ export function ConfirmButton({ onClick }: { onClick: () => void }) {
   );
 }
 
-export function RegisterButton({ onClick, storageEnough, spin }: { onClick: () => void; spin?: boolean; storageEnough: boolean }) {
+export function RegisterButton({
+  onClick,
+  storageEnough,
+  spin,
+  check,
+}: {
+  onClick: () => void;
+  spin?: boolean;
+  storageEnough: boolean;
+  check: boolean;
+}) {
   const [spinNow, setSpinNow] = useState<boolean>(!!spin);
-  console.log('spinNow: ', spinNow);
 
   useEffect(() => {
     setSpinNow(!!spin);
   }, [spin]);
 
   return (
-    <div className='flex flex-col items-center relative bottom-6'>
+    <div className='flex flex-col items-center relative '>
+      <button
+        className={`text-base min-w-fit mb-5 py-3  px-10 relative w-p240 ${
+          spinNow || !check ? 'opacity-30 cursor-not-allowed' : ''
+        } bg-buyGradientGreen rounded-lg text-white font-bold flex items-center justify-center
+      
+    `}
+        onClick={(e) => {
+          e.stopPropagation();
+          setSpinNow(true);
+          onClick();
+        }}
+        type='button'
+        disabled={spinNow || !check}
+      >
+        {spinNow && <SpinIcon />}
+        <span className={`whitespace-nowrap ml-3  `}>Register</span>
+      </button>
       <div className='flex items-start text-sm relative text-white flex-col'>
         <div className='relative mb-3 flex items-center'>
           <div className='mr-2'>
@@ -191,23 +217,6 @@ export function RegisterButton({ onClick, storageEnough, spin }: { onClick: () =
           }}
         ></div>
       </div>
-
-      <button
-        className={`text-base min-w-fit py-3 px-10 relative w-p240 ${
-          spinNow ? 'opacity-30' : ''
-        } bg-buyGradientGreen rounded-lg text-white font-bold flex items-center justify-center
-      
-    `}
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          setSpinNow(true);
-          onClick();
-        }}
-      >
-        {spinNow && <SpinIcon />}
-        <span className={`whitespace-nowrap ml-3  `}>Register</span>
-      </button>
     </div>
   );
 }

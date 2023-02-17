@@ -162,3 +162,33 @@ export interface SymbolInfo {
   min_notional: number;
   price_range: number;
 }
+export interface OrderlyBalance {
+  holding: number;
+  frozen: number;
+  interest: number;
+  pendingShortQty: number;
+  pendingExposure: number;
+  pendingLongQty: number;
+  pendingLongExposure: number;
+  version: number;
+  staked: number;
+  unbonding: number;
+  vault: number;
+  averageOpenPrice: number;
+  pnl24H: number;
+  fee24H: number;
+  markPrice: number;
+}
+
+export interface UserRecord {
+  id: string;
+  uuid: string;
+  token: string;
+  side: 'DEPOSIT' | 'WITHDRAW';
+  amount: number;
+  tx_id: string;
+  fee: number;
+  trans_status: string;
+  created_time: number;
+  updated_time: number;
+}

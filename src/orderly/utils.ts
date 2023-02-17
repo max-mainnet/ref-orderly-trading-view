@@ -192,3 +192,10 @@ export const toNonDivisibleNumber = (decimals: number, number: string): string =
 
   return `${wholePart}${fracPart.padEnd(decimals, '0').slice(0, decimals)}`.replace(/^0+/, '').padStart(1, '0');
 };
+
+export const getAccountName = (accountId: string) => {
+  const [account, network] = accountId.split('.');
+  const niceAccountId = `${account.slice(0, 10)}...${network || ''}`;
+
+  return account.length > 10 ? niceAccountId : accountId;
+};

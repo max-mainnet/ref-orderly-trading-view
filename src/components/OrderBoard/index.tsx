@@ -18,6 +18,7 @@ import { cancelOrder, cancelOrders, editOrder, getOrderTrades } from '../../orde
 import { useWalletSelectorWindow } from '../../WalletSelectorContext';
 import { EditConfirmOrderModal } from '../AllOrders/index';
 import { useTokenMetaFromSymbol } from '../ChartHeader/state';
+import { useHistory } from 'react-router-dom';
 
 export function CancelButton({ text, onClick }: { text: string; onClick: () => void }) {
   return (
@@ -997,6 +998,7 @@ function OrderBoard() {
 
   const { accountId } = useWalletSelectorWindow();
 
+  const history = useHistory();
   //   const allOrders = useAllOrders({ symbol, refreshingTag: false });
 
   const [tab, setTab] = useState<'open' | 'history'>('open');
@@ -1067,25 +1069,16 @@ function OrderBoard() {
           </FlexRow>
         </FlexRow>
 
-        {tab === 'open' && !!openCount && (
-          <CancelButton
-            text='Cancel All'
-            onClick={() => {
-              if (!accountId) return;
-
-              return cancelOrders({
-                accountId,
-                DeleteParams: {
-                  symbol,
-                },
-              }).then((res) => {
-                if (res.success === true) {
-                  handlePendingOrderRefreshing();
-                }
-              });
-            }}
-          />
-        )}
+        <span
+          className='text-sm py-1.5   mb-3 px-3 mr-4 rounded-lg bg-symbolHover cursor-pointer'
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            history.push('/orderly/all-orders');
+          }}
+        >
+          See all
+        </span>
       </FlexRowBetween>
       {<OpenOrders tokenInfo={tokenInfo} orders={openOrders || []} setOpenCount={setOpenCount} symbol={symbol} hidden={tab === 'history'} />}
       {<HistoryOrders setHistoryCount={setHistoryCount} orders={historyOrders || []} symbol={symbol} hidden={tab === 'open'} />}

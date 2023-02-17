@@ -31,12 +31,13 @@ import { digitWrapper } from '../../utiles';
 import { useHistory } from 'react-router-dom';
 
 import { FiSearch } from 'react-icons/fi';
-import { NearIConSelectModal, OrderlyNetworkIcon, OutLinkIcon, PowerByOrderly } from '../Common/Icons';
+import { NearIConSelectModal, OrderlyNetworkIcon, OutLinkIcon, PowerByOrderly, RefToOrderly, Agree } from '../Common/Icons';
 
 import { MdKeyboardArrowDown } from 'react-icons/md';
 import { is_orderly_key_announced, is_trading_key_set } from '../../orderly/on-chain-api';
 import getConfig from '../../config';
 import { useTokenMetaFromSymbol } from '../ChartHeader/state';
+import { AssetModal } from '../AssetModal';
 
 Modal.defaultStyles = {
   overlay: {
@@ -143,6 +144,8 @@ export function TextWrapper({ className, value, bg, textC }: { value: string; bg
   return <span className={`${className} px-1.5  py-0.5 rounded-md ${bg || 'bg-primary '} bg-opacity-10 ${textC || 'text-white'} `}>{value}</span>;
 }
 
+const REF_ORDERLY_AGREE_CHECK = 'REF_ORDERLY_AGREE_CHECK';
+
 function UserBoard() {
   const {
     symbol,
@@ -186,7 +189,11 @@ function UserBoard() {
 
   const [userInfo, setUserInfo] = useState<ClientInfo>();
 
+  const [showAllAssets, setShowAllAssets] = useState<boolean>(false);
+
   const [confirmModalOpen, setConfirmModalOpen] = useState<boolean>(false);
+
+  const [agreeCheck, setAgreeCheck] = useState<boolean>(!!localStorage.getItem(REF_ORDERLY_AGREE_CHECK) || false);
 
   const handleSignOut = async () => {
     const wallet = await selector.wallet();
@@ -211,10 +218,9 @@ function UserBoard() {
     });
 
     getCurrentHolding({ accountId }).then((res) => {
-      setHoldings(res?.data?.holding);
+      setHoldings(res.data.rows);
     });
   }, [accountId, myPendingOrdersRefreshing, validAccountSig]);
-
   const tokenInHolding = (holdings && holdings.find((h) => h.token === symbolFrom)?.holding) || (balances && balances[symbolFrom]?.holding);
 
   const tokenOutHolding = (holdings && holdings.find((h) => h.token === symbolTo)?.holding) || (balances && balances[symbolTo]?.holding);
@@ -302,7 +308,7 @@ function UserBoard() {
   const [keyAnnounced, setKeyAnnounced] = useState<boolean>(false);
 
   useEffect(() => {
-    if (!accountId || !storageEnough) return;
+    if (!accountId || !storageEnough || !agreeCheck) return;
     is_orderly_key_announced(accountId)
       .then(async (key_announce) => {
         setKeyAnnounced(key_announce);
@@ -322,7 +328,7 @@ function UserBoard() {
           }
         });
       });
-  }, [accountId, storageEnough]);
+  }, [accountId, storageEnough, agreeCheck]);
 
   useEffect(() => {
     if (!tradingKeySet || !keyAnnounced) return;
@@ -351,6 +357,35 @@ function UserBoard() {
             backdropFilter: 'blur(5px)',
           }}
         >
+          <RefToOrderly></RefToOrderly>
+          {!!accountId && validContract() && (!storageEnough || !tradingKeySet || !keyAnnounced) && (
+            <div className='text-white mb-4 px-8 text-sm text-start'>
+              <div>
+                This orderbook page is a graphical user interface of Orderly Network, that allows users to trade on the convenience of its
+                infrastructures. You are creating an Orderly account now.
+                <br />
+                Learn more about Orderly Network
+              </div>
+              <div className='flex items-center mt-2'>
+                <div
+                  className='mr-2 cursor-pointer'
+                  onClick={() => {
+                    if (!agreeCheck) {
+                      localStorage.setItem(REF_ORDERLY_AGREE_CHECK, 'true');
+                    } else {
+                      localStorage.removeItem(REF_ORDERLY_AGREE_CHECK);
+                    }
+
+                    setAgreeCheck(!agreeCheck);
+                  }}
+                >
+                  <Agree check={agreeCheck}></Agree>
+                </div>
+
+                <span>I agree</span>
+              </div>
+            </div>
+          )}
           {!accountId && (
             <ConnectWallet
               onClick={() => {
@@ -383,8 +418,9 @@ function UserBoard() {
                 if (!accountId || storageEnough) return;
                 storageDeposit(accountId);
               }}
+              check={agreeCheck}
               storageEnough={!!storageEnough}
-              spin={storageEnough && (!tradingKeySet || !keyAnnounced)}
+              spin={storageEnough && (!tradingKeySet || !keyAnnounced) && agreeCheck}
             />
           )}
         </div>
@@ -459,7 +495,7 @@ function UserBoard() {
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            history.push('/orderly/all-orders');
+            setShowAllAssets(true);
           }}
         >
           See all
@@ -735,6 +771,15 @@ function UserBoard() {
 
       <UserBoardFoot />
 
+      {showAllAssets && (
+        <AssetModal
+          isOpen={showAllAssets}
+          onRequestClose={() => {
+            setShowAllAssets(false);
+          }}
+        />
+      )}
+
       <AssetManagerModal
         isOpen={operationType === 'deposit'}
         onRequestClose={() => {
@@ -783,17 +828,18 @@ function UserBoard() {
   );
 }
 
-function AssetManagerModal(
+export function AssetManagerModal(
   props: Modal.Props & {
     type: 'deposit' | 'withdraw' | undefined;
     onClick: (amount: string) => void;
     tokenId: string | undefined;
     accountBalance: number;
+    walletBalance?: number | string;
     standAlone?: boolean;
     tokenInfo: TokenInfo[] | undefined;
   }
 ) {
-  const { onClick, onRequestClose, type, tokenId: tokenIdProp, accountBalance, tokenInfo } = props;
+  const { onClick, walletBalance: walletBalanceProp, standAlone, onRequestClose, type, tokenId: tokenIdProp, accountBalance, tokenInfo } = props;
 
   const [tokenId, setTokenId] = useState<string | undefined>(tokenIdProp);
 
@@ -821,7 +867,7 @@ function AssetManagerModal(
     tokenInfo
   );
 
-  const walletBalance = balances?.find((b: any) => b.id === tokenId)?.wallet_balance;
+  const walletBalance = balances?.find((b: any) => b.id === tokenId)?.wallet_balance || walletBalanceProp || '0';
 
   useEffect(() => {
     if (!tokenId) return;
@@ -907,7 +953,7 @@ function AssetManagerModal(
             <div className='flex items-center pb-3 justify-between'>
               <span>Wallet Balance</span>
 
-              <span>{!walletBalance ? '-' : toPrecision(walletBalance || '0', 3)}</span>
+              <span>{!walletBalance ? '-' : toPrecision(walletBalance.toString() || '0', 3)}</span>
             </div>
 
             <div className='flex items-center pb-4 justify-between'>
@@ -932,7 +978,7 @@ function AssetManagerModal(
 
                   const percentage =
                     Number(type === 'deposit' ? walletBalance : accountBalance) > 0
-                      ? percent(value || '0', type === 'deposit' ? walletBalance : accountBalance.toString()).toString()
+                      ? percent(value || '0', type === 'deposit' ? walletBalance.toString() : accountBalance.toString()).toString()
                       : '0';
                   setPercentage(scientificNotationToString(percentage));
                 }}

@@ -24,6 +24,9 @@ import { useAllSymbolInfo } from './state';
 import { useBatchTokenMetaFromSymbols } from '../ChartHeader/state';
 import Modal from 'react-modal';
 
+import { IoChevronBackOutline } from 'react-icons/io5';
+import { useHistory } from 'react-router-dom';
+
 export function EditConfirmOrderModal(
   props: Modal.Props & {
     confirmClick: () => void;
@@ -1128,6 +1131,8 @@ function AllOrderBoard() {
 
   const [historyCount, setHistoryCount] = useState<number>();
 
+  const history = useHistory();
+
   useEffect(() => {
     if (openOrders !== undefined) {
       setOpenCount(openOrders.length);
@@ -1141,6 +1146,15 @@ function AllOrderBoard() {
   return (
     <>
       <div className='w-1000px m-auto flex items-center mb-6'>
+        <IoChevronBackOutline
+          cursor={'pointer'}
+          onClick={() => {
+            history.push('/orderly');
+          }}
+          className='text-white pr-2'
+          size={22}
+        />
+
         <span className='mr-2'>
           <OrderlyIcon></OrderlyIcon>
         </span>

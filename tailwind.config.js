@@ -59,6 +59,7 @@ module.exports = {
         orderTipBg: 'rgba(29, 41, 50, 1)',
         primary: '#7E8A93',
         sellRed: '#F96767',
+
         buyGreen: '#90E3B9',
         cardBg: '#101D26',
         orderTypeBg: '#344B5C',
@@ -86,6 +87,11 @@ module.exports = {
         dark5: '#273640',
         light1: ' rgba(126, 138, 147, 0.5)',
         allOrderHeader: '#26333E',
+        withdrawPurple2: '#443F67',
+        gray1: '#23313C',
+        gray2: '#91A2AE',
+        txBlue: '#5285DF',
+        withdrawPurple3: '#8883D7',
       },
       width: {
         '25vw': '25vw',
@@ -108,7 +114,7 @@ module.exports = {
         '1000px': '1000px',
         '1024px': '1024px',
         p70: '70px',
-
+        p869: '869px',
         '1050px': '1050px',
         54: '13.5rem',
         34: '8.5rem',

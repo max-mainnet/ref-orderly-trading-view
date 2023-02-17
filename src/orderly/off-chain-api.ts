@@ -1,6 +1,6 @@
 import { getOrderlyConfig } from '../config';
 import { getPublicKey, generateRequestSignatureHeader, get_orderly_public_key_path, formateParamsNoSorting } from './utils';
-import { OrderlyOrder, EditOrderlyOrder, ClientInfo, orderStatus } from './type';
+import { OrderlyOrder, EditOrderlyOrder, ClientInfo, orderStatus, Balance } from './type';
 import { get_user_trading_key } from './on-chain-api';
 import { ec } from 'elliptic';
 import { generateOrderSignature, OFF_CHAIN_METHOD, formateParams, tradingKeyMap } from './utils';
@@ -174,7 +174,7 @@ export const getAccountInformation = async (props: { accountId: string }): Promi
 export const getCurrentHolding = async (props: { accountId: string }) => {
   const url = '/v1/client/holding';
 
-  const res = requestOrderly({
+  const res = await requestOrderly({
     url,
     accountId: props.accountId,
   });
@@ -184,21 +184,19 @@ export const getCurrentHolding = async (props: { accountId: string }) => {
 
 export const getAssetHistory = async (props: {
   accountId: string;
-  HistoryParam?: {
+  HistoryParam: {
     token?: string;
     side?: 'DEPOSIT' | 'WITHDRAW';
     status?: 'NEW' | 'CONFIRM' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
-    start_t?: number;
-    end_t?: number;
-    page?: number;
+    page: number;
   };
 }) => {
-  const url = '/v1/asset/history';
+  const url = `/balance/asset/history?${formateParams(props.HistoryParam || {})}`;
 
   const res = requestOrderly({
     url,
     accountId: props.accountId,
-    param: props.HistoryParam,
+    ct: 'application/json;charset=utf-8',
   });
 
   return res;

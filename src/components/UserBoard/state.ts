@@ -7,7 +7,7 @@ import { useWalletSelectorWindow } from '../../WalletSelectorContext';
 
 export function useTokenBalance(tokenId: string | undefined) {
   console.log('tokenId: ', tokenId);
-  const [tokenMeta, setTokenMeta] = useState<any>();
+  const [tokenMeta, setTokenMeta] = useState<TokenMetadata>();
   const [walletBalance, setWalletBalance] = useState<string>('');
 
   useEffect(() => {
@@ -35,8 +35,17 @@ interface TokenWithDecimals {
   decimals: number;
 }
 
+interface BalanceType {
+  meta: TokenMetadata;
+  holding: number;
+  wallet_balance: string;
+  id: string;
+  name: string;
+  'in-order': number;
+}
+
 export function useTokensBalances(tokens: TokenWithDecimals[] | undefined, tokenInfo: TokenInfo[] | undefined) {
-  const [showbalances, setShowBalances] = useState<any>([]);
+  const [showbalances, setShowBalances] = useState<BalanceType[]>([]);
 
   const { accountId } = useWalletSelectorWindow();
 
@@ -81,19 +90,26 @@ export function useTokensBalances(tokens: TokenWithDecimals[] | undefined, token
       .then(async (res) => {
         const response = await getCurrentHolding({ accountId });
 
-        const holdings = response?.data?.holding;
+        const holdings = response?.data?.holding as Holding[];
 
-        const resMap = res.reduce((acc, cur) => {
-          const id = cur.id;
+        const resMap = res.reduce(
+          (acc, cur) => {
+            const id = cur.id;
 
-          const holding = holdings?.find((h: Holding) => h.token === cur.name);
+            const holding = holdings?.find((h: Holding) => h.token === cur.name);
+            const displayHolding = holding ? holding.holding + holding.pending_short : 0;
 
-          acc[id] = {
-            ...cur,
-            holding: holding?.holding || 0,
-          };
-          return acc;
-        }, {} as { [key: string]: any });
+            acc[id] = {
+              ...cur,
+              holding: displayHolding,
+              'in-order': holding?.pending_short || 0,
+            };
+            return acc;
+          },
+          {} as {
+            [key: string]: BalanceType;
+          }
+        );
 
         setShowBalances(Object.values(resMap));
       });

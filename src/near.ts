@@ -8,6 +8,7 @@ import * as math from 'mathjs';
 import BN from 'bn.js';
 import { getOrderlyConfig } from './config';
 import { NotSignInError } from './orderly/error';
+import { TokenMetadata } from './orderly/type';
 export interface ViewFunctionOptions {
   methodName: string;
   args?: object;
@@ -135,7 +136,7 @@ export const getAddFunctionCallKeyTransaction = async ({ receiverId, publicKey }
   return wsTransactions;
 };
 
-export const getFTmetadata = async (token: string) => {
+export const getFTmetadata = async (token: string): Promise<TokenMetadata> => {
   if (token === 'near' || token === 'NEAR') return nearMetadata;
 
   const account = await near.account(ORDERLY_ASSET_MANAGER);

@@ -304,3 +304,123 @@ export function OrderlyNetworkIcon() {
     </svg>
   );
 }
+
+export function NearWalletIcon() {
+  return (
+    <svg width='17' height='16' viewBox='0 0 17 16' fill='none' xmlns='http://www.w3.org/2000/svg'>
+      <rect x='0.5' y='4.5' width='16' height='11' rx='2.5' stroke='#7E8A93' />
+      <path d='M11.2188 14H10.3088L6.64875 8.45V14H5.73875V7.02H6.64875L10.3088 12.56V7.02H11.2188V14Z' fill='#7E8A93' />
+      <path d='M2 4.5L11.2703 1.55035C12.2515 1.23815 13.3094 1.72195 13.715 2.66837L14.5 4.5' stroke='#7E8A93' />
+    </svg>
+  );
+}
+
+export function FirstPage() {
+  return (
+    <svg width='10' height='13' viewBox='0 0 10 13' fill='none' xmlns='http://www.w3.org/2000/svg'>
+      <path
+        d='M2.77733 5.77071C2.35628 6.16574 2.35628 6.83426 2.77733 7.22928L6.31579 10.5491C6.95436 11.1482 8 10.6954 8 9.81976L8 3.18023C8 2.30462 6.95436 1.85185 6.31579 2.45095L2.77733 5.77071Z'
+        fill='#7E8A93'
+      />
+      <path d='M1 3V10' stroke='#7E8A93' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round' />
+    </svg>
+  );
+}
+
+export function NextPage() {
+  return (
+    <svg width='6' height='9' viewBox='0 0 6 9' fill='none' xmlns='http://www.w3.org/2000/svg'>
+      <path
+        d='M5.22267 3.77071C5.64372 4.16574 5.64372 4.83426 5.22267 5.22928L1.68421 8.54905C1.04564 9.14816 -4.6751e-07 8.69538 -4.29236e-07 7.81976L-1.39013e-07 1.18023C-1.00738e-07 0.304619 1.04564 -0.148155 1.68421 0.450951L5.22267 3.77071Z'
+        fill='#7E8A93'
+      />
+    </svg>
+  );
+}
+
+export function PrePage() {
+  return (
+    <svg width='6' height='9' viewBox='0 0 6 9' fill='none' xmlns='http://www.w3.org/2000/svg'>
+      <path
+        d='M0.777329 3.77071C0.356276 4.16574 0.356276 4.83426 0.777328 5.22928L4.31579 8.54905C4.95436 9.14816 6 8.69538 6 7.81976L6 1.18023C6 0.304619 4.95436 -0.148155 4.31579 0.450951L0.777329 3.77071Z'
+        fill='#7E8A93'
+      />
+    </svg>
+  );
+}
+
+export function LastPage() {
+  return (
+    <svg width='10' height='13' className='transform rotate-180' viewBox='0 0 10 13' fill='none' xmlns='http://www.w3.org/2000/svg'>
+      <path
+        d='M2.77733 5.77071C2.35628 6.16574 2.35628 6.83426 2.77733 7.22928L6.31579 10.5491C6.95436 11.1482 8 10.6954 8 9.81976L8 3.18023C8 2.30462 6.95436 1.85185 6.31579 2.45095L2.77733 5.77071Z'
+        fill='#7E8A93'
+      />
+      <path d='M1 3V10' stroke='#7E8A93' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round' />
+    </svg>
+  );
+}
+
+export function RefToOrderly() {
+  return (
+    <svg width='101' height='32' className='mb-6' viewBox='0 0 101 32' fill='none' xmlns='http://www.w3.org/2000/svg'>
+      <path d='M30 4.57764e-05L23.6365 4.52201e-05L30 6.36353L30 4.57764e-05Z' fill='#00C6A2' />
+      <path
+        fill-rule='evenodd'
+        clip-rule='evenodd'
+        d='M9.99899 1.81787H18.1806V9.37106L13.6687 13.5607L9.99899 9.89104V1.81787ZM13.5986 17.3475L18.1806 13.0927V29.999H9.99899V13.7479L13.5986 17.3475ZM19.086 19.0791C19.2368 19.0869 19.3887 19.0909 19.5416 19.0909C24.3112 19.0909 28.1777 15.2244 28.1777 10.4547C28.1777 8.54742 27.5594 6.78451 26.5123 5.35552L19.086 12.2514V19.0791ZM19.086 8.52974L24.5729 3.43475C23.1561 2.41753 21.4188 1.81858 19.5416 1.81858C19.3887 1.81858 19.2368 1.82255 19.086 1.83039V8.52974ZM9.09069 1.8186H0V13.5248L6.81662 6.70814L9.09069 8.98222V1.8186ZM9.09069 12.8391L6.81662 10.565L0 17.3816V29.9997H9.09069V12.8391ZM29.9995 29.9993H19.0907V19.0905L29.9995 29.9993Z'
+        fill='url(#paint0_linear_2859_4576)'
+      />
+      <path
+        fill-rule='evenodd'
+        clip-rule='evenodd'
+        d='M100.364 20.4801C98.4268 27.1361 92.2814 32 85 32C77.7186 32 71.5732 27.1361 69.6357 20.4801H79.5693C80.8606 22.0435 82.8139 23.0398 85 23.0398C87.186 23.0398 89.1393 22.0435 90.4306 20.4801H100.364ZM100.68 19.2001H91.2722C91.7631 18.2399 92.04 17.1522 92.04 15.9998C92.04 14.8477 91.7632 13.7602 91.2725 12.8002H100.68C100.89 13.8341 101 14.9042 101 16C101 17.0959 100.89 18.1661 100.68 19.2001ZM78.7277 19.2001C78.2368 18.2399 77.96 17.1522 77.96 15.9998C77.96 14.8477 78.2367 13.7602 78.7274 12.8002H69.32C69.1102 13.8341 69 14.9042 69 16C69 17.0959 69.1102 18.1661 69.3201 19.2001H78.7277ZM72.1992 6.39946C71.0576 7.9192 70.1803 9.64886 69.6356 11.5202H79.5689C80.8601 9.95645 82.8137 8.95984 85 8.95984C87.1863 8.95984 89.1398 9.95645 90.4311 11.5202H100.364C99.8197 9.64886 98.9424 7.9192 97.8008 6.39946H72.1992ZM96.731 5.11946H73.269C76.191 1.97052 80.3654 0 85 0C89.6346 0 93.809 1.97052 96.731 5.11946Z'
+        fill='url(#paint1_linear_2859_4576)'
+      />
+      <circle cx='41.5' cy='17.5' r='1.5' fill='#D9D9D9' />
+      <circle cx='49.5' cy='17.5' r='1.5' fill='#D9D9D9' />
+      <circle cx='57.5' cy='17.5' r='1.5' fill='#D9D9D9' />
+      <defs>
+        <linearGradient id='paint0_linear_2859_4576' x1='14.089' y1='1.81787' x2='14.089' y2='29.9997' gradientUnits='userSpaceOnUse'>
+          <stop stop-color='white' />
+          <stop offset='1' stop-color='white' stop-opacity='0' />
+        </linearGradient>
+        <linearGradient id='paint1_linear_2859_4576' x1='85' y1='0' x2='85' y2='32' gradientUnits='userSpaceOnUse'>
+          <stop stop-color='white' />
+          <stop offset='1' stop-color='white' stop-opacity='0' />
+        </linearGradient>
+      </defs>
+    </svg>
+  );
+}
+
+export function AgreeCheck() {
+  return (
+    <svg width='15' height='15' viewBox='0 0 15 15' fill='none' xmlns='http://www.w3.org/2000/svg'>
+      <rect width='15' height='15' rx='4' fill='url(#paint0_linear_2859_4522)' />
+      <path d='M4 7.5L6.66667 10L12 5' stroke='white' stroke-width='2' stroke-linecap='round' />
+      <defs>
+        <linearGradient id='paint0_linear_2859_4522' x1='7.5' y1='0' x2='7.5' y2='15' gradientUnits='userSpaceOnUse'>
+          <stop stop-color='#00C6A2' />
+          <stop offset='1' stop-color='#008B72' />
+        </linearGradient>
+      </defs>
+    </svg>
+  );
+}
+
+export function AgreeNotCheck() {
+  return (
+    <svg width='15' height='15' viewBox='0 0 17 17' fill='none' xmlns='http://www.w3.org/2000/svg'>
+      <rect x='1' y='1' width='15' height='15' rx='4' fill='#1B272F' stroke='#00D6AF' />
+    </svg>
+  );
+}
+
+export function Agree({ check }: { check: boolean }) {
+  if (check) {
+    return <AgreeCheck />;
+  } else {
+    return <AgreeNotCheck />;
+  }
+}
