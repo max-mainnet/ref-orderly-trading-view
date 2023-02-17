@@ -8,9 +8,11 @@ import { Buffer } from 'buffer';
 import { KeyPair, keyStores } from 'near-api-js';
 import { NotSignInError } from './error';
 
-export const get_orderly_private_key_path = (accountId: string) => `orderly-trading-key-private:${accountId}${getConfig().networkId}`;
+export const tradingKeyMap = new Map();
 
-export const get_orderly_public_key_path = (accountId: string) => `orderly-trading-key-public:${accountId}${getConfig().networkId}`;
+export const get_orderly_private_key_path = () => `orderly-trading-key-private:${getConfig().networkId}`;
+
+export const get_orderly_public_key_path = () => `orderly-trading-key-public:${getConfig().networkId}`;
 
 export const STORAGE_TO_REGISTER_WITH_MFT = '0.1';
 
@@ -25,13 +27,21 @@ export const generateTradingKeyPair = () => {
 
   const keyPair = EC.genKeyPair();
 
-  localStorage.setItem(get_orderly_private_key_path(accountId), keyPair.getPrivate().toString('hex'));
+  const privateKey = keyPair.getPrivate().toString('hex');
 
-  localStorage.setItem(get_orderly_public_key_path(accountId), keyPair.getPublic().encode('hex', false).replace('04', ''));
+  const publicKey = keyPair.getPublic().encode('hex', false).replace('04', '');
+
+  localStorage.setItem(get_orderly_private_key_path(), privateKey);
+
+  localStorage.setItem(get_orderly_public_key_path(), publicKey);
+
+  tradingKeyMap.set(get_orderly_private_key_path(), privateKey);
+
+  tradingKeyMap.set(get_orderly_public_key_path(), publicKey);
 
   return {
-    privateKey: keyPair.getPrivate().toString('hex'),
-    publicKey: keyPair.getPublic().encode('hex', false),
+    privateKey,
+    publicKey,
     keyPair,
   };
 };
@@ -95,10 +105,6 @@ export const generateRequestSignatureHeader = async ({
 
   const keyPair = await keyStore.getKey(getConfig().networkId, accountId);
 
-  // const publicKeyBytes = bs58.decode(publicKey.replace('ed25519:', ''));
-
-  // const privateKeyBytes = bs58.decode(privateKey.replace('ed25519:', ''));
-
   const signature = keyPair.sign(Buffer.from(message)).signature;
 
   // return atob(signature.toString());
@@ -109,7 +115,13 @@ export const generateRequestSignatureHeader = async ({
 export const generateOrderSignature = (accountId: string, message: string) => {
   const msgHash = new Buffer(keccak256(message)).toString('hex');
 
-  const priKey = localStorage.getItem(get_orderly_private_key_path(accountId));
+  const storedPrivateKey = localStorage.getItem(get_orderly_private_key_path());
+
+  if (!storedPrivateKey) {
+    localStorage.setItem(get_orderly_private_key_path(), tradingKeyMap.get(get_orderly_private_key_path()) || '');
+  }
+
+  const priKey = tradingKeyMap.get(get_orderly_private_key_path()) || localStorage.getItem(get_orderly_private_key_path());
 
   if (!priKey) {
     alert('Please generate trading key first');

@@ -1,15 +1,9 @@
 import { getOrderlyConfig } from '../config';
-import {
-  getPublicKey,
-  generateRequestSignatureHeader,
-  get_orderly_private_key_path,
-  get_orderly_public_key_path,
-  formateParamsNoSorting,
-} from './utils';
+import { getPublicKey, generateRequestSignatureHeader, get_orderly_public_key_path, formateParamsNoSorting } from './utils';
 import { OrderlyOrder, EditOrderlyOrder, ClientInfo, orderStatus } from './type';
 import { get_user_trading_key } from './on-chain-api';
 import { ec } from 'elliptic';
-import { generateOrderSignature, OFF_CHAIN_METHOD, formateParams } from './utils';
+import { generateOrderSignature, OFF_CHAIN_METHOD, formateParams, tradingKeyMap } from './utils';
 
 // get
 
@@ -45,7 +39,16 @@ export const getOrderlyHeaders = async ({
   };
 
   if (trading) {
-    headers['orderly-trading-key'] = localStorage.getItem(get_orderly_public_key_path(accountId));
+    const storedPublicKey = localStorage.getItem(get_orderly_public_key_path());
+
+    if (!storedPublicKey) {
+      localStorage.setItem(get_orderly_public_key_path(), tradingKeyMap.get(get_orderly_public_key_path()) || '');
+    }
+
+    const orderly_trading_key = tradingKeyMap.get(get_orderly_public_key_path()) || localStorage.getItem(get_orderly_public_key_path());
+    console.log('orderly_trading_key: ', orderly_trading_key);
+
+    headers['orderly-trading-key'] = orderly_trading_key;
   }
 
   return headers;

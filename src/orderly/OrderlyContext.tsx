@@ -20,6 +20,8 @@ interface OrderlyContextValue {
   pendingOrders: MyOrder[];
   storageEnough: boolean | undefined;
   myPendingOrdersRefreshing: boolean;
+  setValidAccountSig: (validAccountSig: boolean) => void;
+  validAccountSig: boolean;
 }
 
 export const OrderlyContext = createContext<OrderlyContextValue | null>(null);
@@ -33,13 +35,15 @@ const OrderlyContextProvider: React.FC<any> = ({ children }) => {
 
   const storageEnough = useStorageEnough();
 
+  const [validAccountSig, setValidAccountSig] = useState<boolean>(false);
+
   const [myPendingOrdersRefreshing, setMyPendingOrdersRefreshing] = useState<boolean>(false);
 
   const handlePendingOrderRefreshing = () => {
     setMyPendingOrdersRefreshing(!myPendingOrdersRefreshing);
   };
 
-  const privateValue = useOrderlyPrivateData();
+  const privateValue = useOrderlyPrivateData({ validAccountSig });
 
   const pendingOrders = usePendingOrders({ symbol, refreshingTag: myPendingOrdersRefreshing });
 
@@ -70,6 +74,8 @@ const OrderlyContextProvider: React.FC<any> = ({ children }) => {
         pendingOrders,
         storageEnough,
         myPendingOrdersRefreshing,
+        setValidAccountSig,
+        validAccountSig,
       }}
     >
       {children}

@@ -130,7 +130,19 @@ export function TextWrapper({ className, value, bg, textC }: { value: string; bg
 }
 
 function UserBoard() {
-  const { symbol, orders, tokenInfo, storageEnough, marketTrade, markPrices, balances, handlePendingOrderRefreshing } = useOrderlyContext();
+  const {
+    symbol,
+    orders,
+    tokenInfo,
+    storageEnough,
+    marketTrade,
+    markPrices,
+    balances,
+    setValidAccountSig,
+    handlePendingOrderRefreshing,
+    validAccountSig,
+    myPendingOrdersRefreshing,
+  } = useOrderlyContext();
 
   const { accountId, modal, selector } = useWalletSelectorWindow();
 
@@ -178,7 +190,7 @@ function UserBoard() {
   const tokenToBalance = useTokenBalance(tokenOut?.id);
 
   useEffect(() => {
-    if (!accountId) return;
+    if (!accountId || !validAccountSig) return;
 
     getAccountInformation({ accountId }).then((res) => {
       setUserInfo(res);
@@ -187,11 +199,11 @@ function UserBoard() {
     getCurrentHolding({ accountId }).then((res) => {
       setHoldings(res?.data?.holding);
     });
-  }, [accountId]);
+  }, [accountId, myPendingOrdersRefreshing, validAccountSig]);
 
-  const tokenInHolding = (balances && balances[symbolFrom]?.holding) || (holdings && holdings.find((h) => h.token === symbolFrom)?.holding);
+  const tokenInHolding = (holdings && holdings.find((h) => h.token === symbolFrom)?.holding) || (balances && balances[symbolFrom]?.holding);
 
-  const tokenOutHolding = (balances && balances[symbolTo]?.holding) || (holdings && holdings.find((h) => h.token === symbolTo)?.holding);
+  const tokenOutHolding = (holdings && holdings.find((h) => h.token === symbolTo)?.holding) || (balances && balances[symbolTo]?.holding);
 
   const markPriceSymbol = markPrices && markPrices.find((m) => m.symbol === symbol);
 
@@ -270,7 +282,6 @@ function UserBoard() {
   };
 
   const [tradingKeySet, setTradingKeySet] = useState<boolean>(false);
-  console.log('tradingKeySet: ', tradingKeySet);
 
   const [keyAnnounced, setKeyAnnounced] = useState<boolean>(false);
 
@@ -300,6 +311,8 @@ function UserBoard() {
   useEffect(() => {
     if (!tradingKeySet || !keyAnnounced) return;
     handlePendingOrderRefreshing();
+
+    setValidAccountSig(true);
   }, [tradingKeySet, keyAnnounced]);
 
   const isInsufficientBalance =

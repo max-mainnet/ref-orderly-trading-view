@@ -43,7 +43,6 @@ export const useOrderlyWS = () => {
 };
 export const usePrivateOrderlyWS = () => {
   const { accountId } = useWalletSelectorWindow();
-
   const [socketUrl, setSocketUrl] = useState(getOrderlyConfig().ORDERLY_WS_ENDPOINT_PRIVATE + `/${accountId}`);
 
   useEffect(() => {
@@ -292,7 +291,7 @@ export const useOrderlyMarketData = ({ symbol }: { symbol: string }) => {
   };
 };
 
-export const useOrderlyPrivateData = () => {
+export const useOrderlyPrivateData = ({ validAccountSig }: { validAccountSig: boolean }) => {
   const { connectionStatus, messageHistory, lastMessage, sendMessage, lastJsonMessage } = usePrivateOrderlyWS();
 
   const [authPass, setAuthPass] = useState(false);
@@ -307,7 +306,7 @@ export const useOrderlyPrivateData = () => {
   const time_stamp = useMemo(() => Date.now(), []);
 
   useEffect(() => {
-    if (!accountId) return;
+    if (!accountId || !validAccountSig) return;
 
     generateRequestSignatureHeader({
       accountId,
@@ -315,7 +314,7 @@ export const useOrderlyPrivateData = () => {
       url: null,
       body: null,
     }).then(setRequestSignature);
-  }, [accountId]);
+  }, [accountId, validAccountSig]);
 
   useEffect(() => {
     if (!accountId) return;
@@ -326,7 +325,7 @@ export const useOrderlyPrivateData = () => {
   }, [accountId]);
 
   useEffect(() => {
-    if (!orderlyKey || !requestSignature) return;
+    if (!orderlyKey || !requestSignature || !validAccountSig) return;
 
     const authData = {
       id: 'auth',
@@ -339,7 +338,7 @@ export const useOrderlyPrivateData = () => {
     };
 
     sendMessage(JSON.stringify(authData));
-  }, [orderlyKey, requestSignature, accountId]);
+  }, [orderlyKey, requestSignature, accountId, validAccountSig]);
 
   useEffect(() => {
     if (lastJsonMessage && lastJsonMessage.event === 'auth' && lastJsonMessage.success === true) {

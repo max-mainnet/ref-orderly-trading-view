@@ -14,6 +14,7 @@ import AllOrders from './components/AllOrders';
 import { BrowserRouter as Router, Switch, Route, useLocation, useHistory } from 'react-router-dom';
 
 import Big from 'big.js';
+import { get_orderly_private_key_path, tradingKeyMap } from './orderly/utils';
 
 Big.RM = 0;
 
@@ -54,6 +55,30 @@ function TradingBoard() {
 }
 
 function App() {
+  window.onbeforeunload = () => {
+    const priKeyPath = get_orderly_private_key_path();
+
+    const pubKeyPath = get_orderly_private_key_path();
+
+    tradingKeyMap.get(priKeyPath) && localStorage.setItem(priKeyPath, tradingKeyMap.get(priKeyPath));
+
+    tradingKeyMap.get(pubKeyPath) && localStorage.setItem(pubKeyPath, tradingKeyMap.get(pubKeyPath));
+  };
+
+  window.onload = () => {
+    const priKeyPath = get_orderly_private_key_path();
+
+    const pubKeyPath = get_orderly_private_key_path();
+
+    const priKey = localStorage.getItem(priKeyPath);
+
+    const pubKey = localStorage.getItem(pubKeyPath);
+
+    priKey && tradingKeyMap.set(priKeyPath, priKey);
+
+    pubKey && tradingKeyMap.set(pubKeyPath, pubKey);
+  };
+
   return (
     <div className={'App'}>
       <WalletSelectorContextProvider>

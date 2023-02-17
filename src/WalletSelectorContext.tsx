@@ -11,6 +11,7 @@ import * as React from 'react';
 import { useEffect, useState, useCallback } from 'react';
 import getConfig from './config';
 import '@near-wallet-selector/modal-ui/styles.css';
+import { get_orderly_private_key_path, get_orderly_public_key_path, tradingKeyMap } from './orderly/utils';
 
 const CONTRACT_ID = getConfig().ORDERLY_ASSET_MANAGER;
 declare global {
@@ -146,6 +147,18 @@ export const WalletSelectorContextWindowProvider: React.FC<any> = ({ children })
   if (!selector || !modal) {
     return null;
   }
+
+  selector.on('signedOut', () => {
+    const priTradingKeyPath = get_orderly_private_key_path();
+
+    localStorage.removeItem(priTradingKeyPath);
+
+    const pubTradingKeyPath = get_orderly_public_key_path();
+
+    localStorage.removeItem(pubTradingKeyPath);
+
+    tradingKeyMap.clear();
+  });
 
   return (
     <WalletSelectorContextWindow.Provider
