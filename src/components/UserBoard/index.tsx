@@ -31,7 +31,7 @@ import { digitWrapper } from '../../utiles';
 import { useHistory } from 'react-router-dom';
 
 import { FiSearch } from 'react-icons/fi';
-import { NearIConSelectModal, OutLinkIcon } from '../Common/Icons';
+import { NearIConSelectModal, OrderlyNetworkIcon, OutLinkIcon, PowerByOrderly } from '../Common/Icons';
 
 import { MdKeyboardArrowDown } from 'react-icons/md';
 import { is_orderly_key_announced, is_trading_key_set } from '../../orderly/on-chain-api';
@@ -77,6 +77,20 @@ function validContract() {
 
     return true;
   }
+}
+
+function UserBoardFoot() {
+  return (
+    <div className='flex items-center right-6 justify-center  absolute opacity-60 bottom-6 text-13px'>
+      <span className='text-white  '>Powered by</span>
+
+      <div className='mx-2'>
+        <OrderlyNetworkIcon></OrderlyNetworkIcon>
+      </div>
+
+      <span className='text-white '>Risk</span>
+    </div>
+  );
 }
 
 export const TokenLinks = {
@@ -250,7 +264,8 @@ function UserBoard() {
           side: side,
           size: inputValue,
           tokenIn: tokenIn,
-          price: markPriceSymbol?.price?.toString() || '',
+          price: marketPrice.toString() || '',
+          timeStamp: res.timestamp,
         });
       });
     } else if (orderType === 'Limit') {
@@ -276,6 +291,7 @@ function UserBoard() {
           size: inputValue,
           tokenIn: tokenIn,
           price: limitPrice || '',
+          timeStamp: res.timestamp,
         });
       });
     }
@@ -354,6 +370,10 @@ function UserBoard() {
                   await wallet.signOut();
                 }}
               ></ConfirmButton>
+
+              <div className='flex items-center mt-2 justify-center'>
+                <PowerByOrderly />
+              </div>
             </div>
           )}
 
@@ -712,6 +732,8 @@ function UserBoard() {
         {isInsufficientBalance ? 'Insufficient Balance' : side}
         {` ${isInsufficientBalance ? '' : symbolFrom}`}
       </button>
+
+      <UserBoardFoot />
 
       <AssetManagerModal
         isOpen={operationType === 'deposit'}

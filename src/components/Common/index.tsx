@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState, useRef } from 'react';
 import ReactTooltip from 'react-tooltip';
-import { GrayBgBox, NearIcon, OrderStateOutline, ArrowCurve, OrderSmile, SpinIcon, CheckFlow } from './Icons';
+import { GrayBgBox, NearIcon, OrderStateOutline, ArrowCurve, OrderSmile, SpinIcon, CheckFlow, OrderStateOutlineBlack } from './Icons';
 import { useTokenMetaFromSymbol } from '../ChartHeader/state';
 import { useOrderlyContext } from '../../orderly/OrderlyContext';
 import { parseFullSymbol } from '../../datafeed/helpers';
@@ -10,6 +10,7 @@ import { parseSymbol } from '../RecentTrade';
 import 'react-toastify/dist/ReactToastify.css';
 
 import { HiDownload } from 'react-icons/hi';
+import { formatTimeDate } from '../OrderBoard/index';
 
 export function TokenIcon({ src }: { src: any }) {
   return <img src={src} alt='' className={`h-5 w-5 rounded-full `} />;
@@ -247,6 +248,7 @@ export function orderPopUp({
   price,
   size,
   tokenIn,
+  timeStamp,
 }: {
   orderType: 'Limit' | 'Market';
   symbolName: string;
@@ -254,57 +256,40 @@ export function orderPopUp({
   size: string;
   price: string;
   tokenIn: TokenMetadata | undefined;
+  timeStamp?: number;
 }) {
   const { symbolFrom, symbolTo } = parseSymbol(symbolName);
   return toast(
-    <div className='flex-col bg-darkBg  text-sm text-primary  '>
-      <FlexRowBetween>
-        <div className='flex -mt-1 items-center'>
+    <div className={`flex-col   text-sm text-dark5  `}>
+      <FlexRowBetween className='relative bottom-3'>
+        {/* <div className='flex -mt-1 items-center'>
           <TokenIcon src={tokenIn?.icon} />
           <span className='text-white  ml-2'>{symbolFrom}</span>
           <span> / {symbolTo}</span>
+        </div> */}
+
+        <div className='flex text-sm items-center'>
+          <div className={`border border-dark5 rounded-lg font-bold px-2 mr-1.5  ${side === 'Buy' ? 'bg-greenLight' : 'bg-redLight'}`}>{side}</div>
+
+          <div className='text-dark5 font-bold text-lg'>{orderType} Order Created!</div>
         </div>
 
         <div className='flex -mt-1 items-center'>
           <span>Open</span>
-          <span className='ml-2'>
-            <OrderStateOutline />
+          <span className='ml-1'>
+            <OrderStateOutlineBlack />
           </span>
         </div>
       </FlexRowBetween>
 
-      <FlexRowBetween>
-        <span>
-          {orderType}
-          &nbsp; Order
-        </span>
+      <FlexRowStart className='mt-6 '>
+        {`To ${side} `}
+        <span className='mx-1 font-bold'>{`${size} ${symbolFrom}`}</span>
+        at
+        <span className='ml-1 font-bold'>{`${price} ${symbolTo}`}</span>
+      </FlexRowStart>
 
-        <span
-          className={` bg-opacity-10 rounded-md px-2 flex items-center justify-between
-        
-          ${side === 'Buy' ? 'text-buyGreen bg-buyGreen' : 'text-sellRed bg-sellRed'}
-        
-        `}
-        >
-          {side}
-        </span>
-      </FlexRowBetween>
-
-      <FlexRowBetween>
-        <span>Size</span>
-
-        <div className='flex items-center'>
-          <span>{size}</span>
-
-          <span className='ml-2'>{symbolFrom}</span>
-        </div>
-      </FlexRowBetween>
-
-      <FlexRowBetween>
-        <span>Price</span>
-
-        <span>${price}</span>
-      </FlexRowBetween>
+      {timeStamp !== undefined && <div className='mt-2 pb-8 items-start text-start'>{formatTimeDate(timeStamp)}</div>}
     </div>,
     {
       closeOnClick: true,
@@ -314,11 +299,13 @@ export function orderPopUp({
       autoClose: false,
       closeButton: false,
       style: {
-        background: '#222F38',
-        boxShadow: '0px 0px 10px 10px rgba(0, 0, 0, 0.15)',
+        background: side === 'Buy' ? 'linear-gradient(180deg, #5EFFEC 0%, #9CFFE7 100%)' : 'linear-gradient(180deg, #FFA5DB 0%, #FFDCF1 100%)',
+        boxShadow: '0px -5px 10px rgba(0, 0, 0, 0.25)',
         borderRadius: '16px',
         zIndex: 9999,
-        border: '1px solid #304352',
+        right: '40px',
+        width: '340px',
+        bottom: '-70px',
       },
     }
   );

@@ -121,14 +121,16 @@ function OrderLine({ order, marketInfo, tokenIn }: { tokenIn: TokenMetadata; ord
       .then((res) => {
         if (!!res.success) {
           handlePendingOrderRefreshing();
+          return res;
         }
       })
-      .then(() => {
+      .then((res) => {
         setOpenEditQuantity(false);
         setOpenEditPrice(false);
         setShowEditModal(false);
+        return res;
       })
-      .then(() => {
+      .then((res) => {
         return orderPopUp({
           orderType: 'Limit',
           side: order.side === 'SELL' ? 'Sell' : 'Buy',
@@ -136,6 +138,7 @@ function OrderLine({ order, marketInfo, tokenIn }: { tokenIn: TokenMetadata; ord
           price: price,
           size: quantity,
           tokenIn,
+          timeStamp: res.timestamp,
         });
       });
   }

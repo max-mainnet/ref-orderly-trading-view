@@ -118,14 +118,16 @@ function OrderLine({ order, tokenInfo }: { order: MyOrder; tokenInfo: TokenInfo[
       .then((res) => {
         if (!!res.success) {
           handlePendingOrderRefreshing();
+          return res;
         }
       })
-      .then(() => {
+      .then((res) => {
         setOpenEditQuantity(false);
         setOpenEditPrice(false);
         setShowEditModal(false);
+        return res;
       })
-      .then(() => {
+      .then((res) => {
         return orderPopUp({
           orderType: 'Limit',
           side: order.side === 'SELL' ? 'Sell' : 'Buy',
@@ -133,6 +135,7 @@ function OrderLine({ order, tokenInfo }: { order: MyOrder; tokenInfo: TokenInfo[
           price: price,
           size: quantity,
           tokenIn,
+          timeStamp: res.timestamp,
         });
       });
   }
