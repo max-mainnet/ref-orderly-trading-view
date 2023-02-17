@@ -459,7 +459,7 @@ function UserBoard() {
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            history.push('/all-orders');
+            history.push('/orderly/all-orders');
           }}
         >
           See all

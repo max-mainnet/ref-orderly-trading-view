@@ -87,7 +87,7 @@ function App() {
             {/* <RecentTrade></RecentTrade> */}
             <Router>
               <Switch>
-                <Route path='/all-orders' component={AllOrders} />
+                <Route path='/orderly/all-orders' component={AllOrders} />
 
                 <Route path='/' component={TradingBoard} />
               </Switch>
